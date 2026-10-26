@@ -4,7 +4,7 @@
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#7055dc"><title>Будь ВКурсе — события рядом</title>
   <link rel="icon" href="/assets/brand/generated-mark.png"><link rel="stylesheet" href="/vendor/leaflet.css"><link rel="stylesheet" href="/vendor/maplibre-gl.css">
-  <link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/map.css"><link rel="stylesheet" href="/calendar-photos.css"><link rel="stylesheet" href="/brand.css"><link rel="stylesheet" href="/live.css"><link rel="stylesheet" href="/locations.css"><link rel="stylesheet" href="/communications.css">
+  <link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/map.css"><link rel="stylesheet" href="/calendar-photos.css"><link rel="stylesheet" href="/brand.css"><link rel="stylesheet" href="/live.css"><link rel="stylesheet" href="/locations.css"><link rel="stylesheet" href="/responsive.css"><link rel="stylesheet" href="/achievements.css">
 </head>
 <body>
   <section id="auth-screen" class="auth-screen" aria-label="Вход в Будь ВКурсе">
@@ -22,8 +22,8 @@
         <button class="nav-item" data-view="map"><span data-icon="pin"></span>Карта мероприятий</button>
         <button class="nav-item" data-view="saved"><span data-icon="bookmark"></span>Избранное<span id="saved-count" class="count">0</span></button>
         <button class="nav-item" data-view="calendar"><span data-icon="calendar"></span>Календарь</button>
-        <button class="nav-item" data-view="messages"><span data-icon="message"></span>Сообщения<span class="unread-badge" data-unread="messages" hidden></span></button><button class="nav-item" data-view="reminders"><span data-icon="bell"></span>Напоминания<span class="unread-badge" data-unread="reminders" hidden></span></button><button class="nav-item" data-view="registrations"><span data-icon="check"></span>Мои записи</button>
-        <button class="nav-item" data-action="interests"><span data-icon="spark"></span>Мои интересы</button>
+        <button class="nav-item" data-view="registrations"><span data-icon="check"></span>Мои записи</button>
+        <button class="nav-item" data-view="achievements"><span data-icon="spark"></span>Мои достижения</button><button class="nav-item" data-view="leaderboard"><span data-icon="trophy"></span>Рейтинг участников</button><button class="nav-item" data-action="interests"><span data-icon="spark"></span>Мои интересы</button>
         <button class="nav-item" data-view="manage" data-organizer hidden><span data-icon="plus"></span>Мои мероприятия</button>
         <button class="nav-item" data-view="admin" data-admin hidden><span data-icon="sliders"></span>Управление</button>
       </nav>
@@ -31,7 +31,7 @@
       <div class="sidebar-bottom"><button class="organizer-button" data-action="logout">Выйти из аккаунта</button></div>
     </aside>
     <div class="shell">
-      <header class="topbar"><a class="mobile-brand" href="#feed"><span class="brand-picture"><img class="full-brand-logo" src="/assets/brand/full-wordmark.png" alt="Будь ВКурсе"></span></a><label class="global-search"><span data-icon="search"></span><input id="search" type="search" placeholder="Событие, школа или город…" aria-label="Поиск событий" autocomplete="off"><kbd>/</kbd></label><div class="top-actions"><button class="communication-button" data-view="messages" aria-label="Открыть сообщения"><span data-icon="message"></span><span class="unread-badge" data-unread="messages" hidden></span></button><button class="communication-button" data-view="reminders" aria-label="Открыть напоминания"><span data-icon="bell"></span><span class="unread-badge" data-unread="reminders" hidden></span></button><button class="city-button" data-action="profile"><span data-icon="pin"></span><span id="city-current">Мой город</span></button><button class="profile-button" data-action="profile"><span id="avatar"></span><span class="profile-text"><b id="profile-name"></b><small id="profile-class"></small></span><span>⌄</span></button></div></header>
+      <header class="topbar"><a class="mobile-brand" href="#feed"><span class="brand-picture"><img class="full-brand-logo" src="/assets/brand/full-wordmark.png" alt="Будь ВКурсе"></span></a><label class="global-search"><span data-icon="search"></span><input id="search" type="search" placeholder="Событие, школа или город…" aria-label="Поиск событий" autocomplete="off"><kbd>/</kbd></label><div class="top-actions"><button class="city-button" data-action="profile"><span data-icon="pin"></span><span id="city-current">Мой город</span></button><button class="profile-button" data-action="profile"><span id="avatar"></span><span class="profile-text"><b id="profile-name"></b><small id="profile-class"></small></span><span>⌄</span></button></div></header>
       <main id="main" tabindex="-1">
         <div class="page-heading"><div><div class="eyebrow" id="today-heading"></div><h1 id="page-title"></h1><p id="page-subtitle"></p></div><button class="subtle-button" data-action="refresh"><span data-icon="refresh"></span>Обновить</button></div>
         <div id="page-error" class="error-banner" role="alert" hidden></div>
@@ -43,13 +43,13 @@
           <div id="view-tools"></div>
           <section id="map-panel" class="map-panel" hidden aria-label="Карта мероприятий"><div class="map-topline"><div><b id="map-summary"></b><span>Опубликованные очные мероприятия</span></div><div class="map-view-actions"><button class="map-fit" data-geo-open="place">⌕ Найти место</button><button class="map-fit" data-action="map-locate">⌖ Я на карте</button><button class="map-fit" data-action="map-expand">↗ На весь экран</button><button class="map-fit" data-action="map-world">Весь мир</button><button class="map-fit" data-action="map-city">Выбранный город</button></div></div><div class="map-layout"><div class="map-canvas-wrap"><div id="event-map"></div><div class="map-legend"><span><i class="legend-school"></i>Школа</span><span><i class="legend-city"></i>Городская площадка</span></div></div><div id="map-list" class="map-event-list"></div></div></section>
           <section id="full-calendar" hidden aria-label="Календарь мероприятий"></section>
-          <section id="communications-panel" hidden aria-label="Сообщения и напоминания"></section><div id="events" class="event-grid"></div><div id="pagination" class="pagination"></div>
+          <section id="achievements-panel" hidden aria-label="Достижения и рейтинг"></section><div id="events" class="event-grid"></div><div id="pagination" class="pagination"></div>
         </section>
         <footer class="page-footer"><span>Будь ВКурсе <b>✦</b> Твой интерес — твой маршрут.</span><span>Время событий — по часовому поясу устройства</span></footer>
       </main>
     </div>
-    <nav class="mobile-nav" aria-label="Мобильная навигация"><button data-view="feed"><span data-icon="grid"></span>Лента</button><button data-view="map"><span data-icon="pin"></span>Карта</button><button data-view="saved"><span data-icon="bookmark"></span>Избранное</button><button data-view="calendar"><span data-icon="calendar"></span>Календарь</button><button data-action="profile"><span data-icon="user"></span>Профиль</button></nav>
+    <nav class="mobile-nav" aria-label="Мобильная навигация"><button data-view="feed"><span data-icon="grid"></span>Лента</button><button data-view="map"><span data-icon="pin"></span>Карта</button><button data-view="leaderboard"><span data-icon="trophy"></span>Рейтинг</button><button data-view="calendar"><span data-icon="calendar"></span>Календарь</button><button data-action="profile"><span data-icon="user"></span>Профиль</button></nav>
   </div>
   <dialog id="modal"><button class="modal-close icon-button" aria-label="Закрыть окно" data-action="close">×</button><div id="modal-content"></div></dialog><div id="toast" class="toast" role="status"></div>
-  <script src="/vendor/leaflet.js"></script><script src="/vendor/maplibre-gl.js"></script><script src="/vendor/maplibre-gl-leaflet.js"></script><script src="/basemap.js"></script><script src="/api-client.js"></script><script src="/event-utils.js"></script><script src="/event-map.js"></script><script src="/event-calendar.js"></script><script src="/communications.js"></script><script src="/app-live.js"></script><script src="/optional-fields.js"></script><script src="/location-search.js"></script>
+  <script src="/vendor/leaflet.js"></script><script src="/vendor/maplibre-gl.js"></script><script src="/vendor/maplibre-gl-leaflet.js"></script><script src="/basemap.js"></script><script src="/api-client.js"></script><script src="/event-utils.js"></script><script src="/event-map.js"></script><script src="/event-calendar.js"></script><script src="/achievements.js"></script><script src="/app-live.js"></script><script src="/optional-fields.js"></script><script src="/location-search.js"></script>
 </body></html>

@@ -24,10 +24,10 @@ async def save_plan(db, user, event_id, data):
     if event.status not in ("published", "cancelled"):
         raise AppError(409, "В планы добавляют опубликованные события")
     row = await plans.upsert_plan(db, user.id, event_id, data.model_dump())
-    return {"event": (await serialize_many(db, [event], user))[0], "reminder_minutes_before": row.reminder_minutes_before, "created_at": row.created_at}
+    return {"event": (await serialize_many(db, [event], user))[0], "created_at": row.created_at}
 
 
-async def personal_rows(db, rows, user, *, with_reminder=False):
+async def personal_rows(db, rows, user):
     events = list((await db.scalars(select(Event).where(Event.id.in_([r.event_id for r in rows])))).all())
     cards = {e.id: e for e in await serialize_many(db, events, user)}
     result = []
@@ -36,8 +36,6 @@ async def personal_rows(db, rows, user, *, with_reminder=False):
         if row.event_id not in cards:
             continue
         values = {"event": cards[row.event_id], "created_at": row.created_at}
-        if with_reminder:
-            values["reminder_minutes_before"] = row.reminder_minutes_before
         result.append(values)
     return result
 
@@ -67,7 +65,9 @@ async def register(db, user, event_id):
 
 async def cancel_registration(db, user, event_id):
 
-    await common.get(db, Event, event_id, lock=True)
+    event = await common.get(db, Event, event_id, lock=True)
+    if event and event.status == "published" and aware(event.starts_at) <= utcnow():
+        raise AppError(409, "После начала мероприятия запись нельзя отменить")
     row = await registrations.get_registration(db, user.id, event_id)
     if row and row.status == "registered":
         await registrations.cancel_registration(db, row)

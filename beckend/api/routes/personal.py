@@ -10,7 +10,7 @@ from services import personal
 from services.events import accessible_event
 from services.events import serialize_many
 from sqlalchemy import select
-from db.models import Event, User
+from db.models import Attendance, Event, User
 
 router = APIRouter(tags=["Избранное, планы и участники"])
 
@@ -38,10 +38,10 @@ async def remove_favorite(event_id: int, db: DB, user: CurrentUser):
 @router.get("/me/plans", response_model=Page[PlanRead], summary="Личный календарь за период")
 async def my_plans(db: DB, user: CurrentUser, filters: Annotated[PlanFilters, Query()]):
     rows, total = await plans.list_plans(db, user.id, filters)
-    return dict(items=await personal.personal_rows(db, rows, user, with_reminder=True), total=total, page=filters.page, limit=filters.limit)
+    return dict(items=await personal.personal_rows(db, rows, user), total=total, page=filters.page, limit=filters.limit)
 
 
-@router.put("/me/plans/{event_id}", response_model=PlanRead, summary="Добавить в планы или изменить напоминание")
+@router.put("/me/plans/{event_id}", response_model=PlanRead, summary="Добавить мероприятие в личный календарь")
 async def save_plan(event_id: int, data: PlanWrite, db: DB, user: CurrentUser):
     return await personal.save_plan(db, user, event_id, data)
 
@@ -71,7 +71,8 @@ async def my_registrations(db: DB, user: CurrentUser, pagination: Annotated[Pagi
     rows, total = await registrations.list_user_registrations(db, user.id, pagination)
     event_rows = list((await db.scalars(select(Event).where(Event.id.in_([r.event_id for r in rows])))).all())
     cards = {e.id: e for e in await serialize_many(db, event_rows, user)}
-    items = [RegistrationRead.model_validate(r).model_copy(update={"event": cards.get(r.event_id)}) for r in rows]
+    attended = set((await db.scalars(select(Attendance.event_id).where(Attendance.user_id == user.id))).all())
+    items = [RegistrationRead.model_validate(r).model_copy(update={"event": cards.get(r.event_id), "attended": r.event_id in attended}) for r in rows]
     return dict(items=items, total=total, **pagination.model_dump())
 
 
@@ -80,5 +81,6 @@ async def event_registrations(event_id: int, db: DB, user: Organizer, pagination
     await accessible_event(db, event_id, user, write=True)
     rows, total = await registrations.list_event_registrations(db, event_id, pagination)
     people = {u.id: u for u in (await db.scalars(select(User).where(User.id.in_([r.user_id for r in rows])))).all()}
-    items = [RegistrationRead.model_validate(r).model_copy(update={"participant_name": people[r.user_id].name, "grade": people[r.user_id].grade}) for r in rows]
+    attended = set((await db.scalars(select(Attendance.user_id).where(Attendance.event_id == event_id))).all())
+    items = [RegistrationRead.model_validate(r).model_copy(update={"participant_name": people[r.user_id].name, "grade": people[r.user_id].grade, "attended": r.user_id in attended}) for r in rows]
     return dict(items=items, total=total, **pagination.model_dump())

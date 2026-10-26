@@ -5,6 +5,7 @@ from .events import EventShort
 
 
 class RegistrationRead(ReadModel):
+    attended: bool = False
     event: EventShort | None = None
     participant_name: str | None = None
     grade: int | None = None

@@ -31,7 +31,7 @@ async def test_admin_deletes_published_event_with_all_related_data(api):
     topic=await client.post(P+'/topics',headers=admin,json={'name':'Удаляемое событие','slug':'deletion-test'})
     assert topic.status_code==201
     assert (await client.patch(f'{P}/events/{eid}',headers=owner,json={'topic_ids':[topic.json()['id']]})).status_code==200
-    assert (await client.put(f'{P}/me/plans/{eid}',headers=student,json={'reminder_minutes_before':None})).status_code==200
+    assert (await client.put(f'{P}/me/plans/{eid}',headers=student,json={})).status_code==200
     assert (await client.put(f'{P}/me/favorites/{eid}',headers=student)).status_code==200
     assert (await client.post(f'{P}/events/{eid}/registrations',headers=student)).status_code==201
     for headers,code in ((owner,409),(other,403),(student,403)):
