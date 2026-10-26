@@ -17,7 +17,7 @@ async def test_create_update_map_calendar_cancel_and_delete(api):
     assert markers[0]['id']==eid
     assert markers[0]['place_name']==body['place_name']
     assert 'topic_ids' in markers[0] and 'timezone' in markers[0]
-    await client.put(f'{P}/me/plans/{eid}',headers=user,json={'reminder_minutes_before':None})
+    await client.put(f'{P}/me/plans/{eid}',headers=user,json={})
     await client.post(f'{P}/events/{eid}/registrations',headers=user)
     mine=(await client.get(P+'/me/registrations',headers=user)).json()['items']
     assert mine[0]['event']['title']==body['title']

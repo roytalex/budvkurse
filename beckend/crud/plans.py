@@ -11,8 +11,6 @@ async def get_plan(db, user_id, event_id):
 async def upsert_plan(db, user_id, event_id, data):
     row = await get_plan(db, user_id, event_id)
     if row:
-        if data.get("reminder_minutes_before") != row.reminder_minutes_before:
-            data = {**data, "reminder_read_for": None}
         return await common.update(db, row, data)
     return await common.create(db, Plan, dict(user_id=user_id, event_id=event_id, **data))
 

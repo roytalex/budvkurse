@@ -69,7 +69,7 @@ async def test_filters_map_calendar_favorites_plans(api):
     assert (await client.get(f"{P}/events/map", headers=user, params=dict(west=0, south=90, east=1, north=-90))).status_code == 422
     for _ in range(2):
         assert (await client.put(f"{P}/me/favorites/{eid}", headers=user)).status_code == 200
-        assert (await client.put(f"{P}/me/plans/{eid}", headers=user, json={"reminder_minutes_before": 60})).status_code == 200
+        assert (await client.put(f"{P}/me/plans/{eid}", headers=user, json={})).status_code == 200
     assert (await client.get(f"{P}/me/favorites", headers=user)).json()["total"] == 1
     assert (await client.get(f"{P}/me/plans", headers=user)).json()["total"] == 1
     card = (await client.get(f"{P}/events", headers=user)).json()["items"][0]

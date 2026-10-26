@@ -2554,7 +2554,7 @@
         "tags": [
           "Избранное, планы и участники"
         ],
-        "summary": "Добавить в планы или изменить напоминание",
+        "summary": "Добавить мероприятие в личный календарь",
         "operationId": "save_plan_api_v1_me_plans__event_id__put",
         "security": [
           {
@@ -3207,10 +3207,365 @@
           }
         ]
       }
+    },
+    "/api/v1/me/achievements": {
+      "get": {
+        "tags": [
+          "Достижения и рейтинг"
+        ],
+        "summary": "My Achievements",
+        "operationId": "my_achievements_api_v1_me_achievements_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AchievementSummary"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/achievements/leaderboard": {
+      "get": {
+        "tags": [
+          "Достижения и рейтинг"
+        ],
+        "summary": "Leaderboard",
+        "operationId": "leaderboard_api_v1_achievements_leaderboard_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_LeaderboardEntry_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users/{user_id}/achievements": {
+      "get": {
+        "tags": [
+          "Достижения и рейтинг"
+        ],
+        "summary": "Participant Achievements",
+        "operationId": "participant_achievements_api_v1_users__user_id__achievements_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AchievementSummary"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/events/{event_id}/attendance/{user_id}": {
+      "put": {
+        "tags": [
+          "Достижения и рейтинг"
+        ],
+        "summary": "Confirm Attendance",
+        "operationId": "confirm_attendance_api_v1_events__event_id__attendance__user_id__put",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Event Id"
+            }
+          },
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "User Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttendanceWrite"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttendanceRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "AchievementRead": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "metric": {
+            "type": "string",
+            "title": "Metric"
+          },
+          "target": {
+            "type": "integer",
+            "title": "Target"
+          },
+          "progress": {
+            "type": "integer",
+            "title": "Progress"
+          },
+          "points": {
+            "type": "integer",
+            "title": "Points"
+          },
+          "earned": {
+            "type": "boolean",
+            "title": "Earned"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "title",
+          "description",
+          "metric",
+          "target",
+          "progress",
+          "points",
+          "earned"
+        ],
+        "title": "AchievementRead"
+      },
+      "AchievementSummary": {
+        "properties": {
+          "user_id": {
+            "type": "integer",
+            "title": "User Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "attendance_count": {
+            "type": "integer",
+            "title": "Attendance Count"
+          },
+          "olympiad_count": {
+            "type": "integer",
+            "title": "Olympiad Count"
+          },
+          "points": {
+            "type": "integer",
+            "title": "Points"
+          },
+          "earned_count": {
+            "type": "integer",
+            "title": "Earned Count"
+          },
+          "rank": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rank"
+          },
+          "achievements": {
+            "items": {
+              "$ref": "#/components/schemas/AchievementRead"
+            },
+            "type": "array",
+            "title": "Achievements"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "name",
+          "attendance_count",
+          "olympiad_count",
+          "points",
+          "earned_count",
+          "achievements"
+        ],
+        "title": "AchievementSummary"
+      },
+      "AttendanceRead": {
+        "properties": {
+          "event_id": {
+            "type": "integer",
+            "title": "Event Id"
+          },
+          "user_id": {
+            "type": "integer",
+            "title": "User Id"
+          },
+          "attended": {
+            "type": "boolean",
+            "title": "Attended"
+          },
+          "confirmed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confirmed At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "event_id",
+          "user_id",
+          "attended",
+          "confirmed_at"
+        ],
+        "title": "AttendanceRead"
+      },
+      "AttendanceWrite": {
+        "properties": {
+          "attended": {
+            "type": "boolean",
+            "title": "Attended"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "attended"
+        ],
+        "title": "AttendanceWrite"
+      },
       "Body_upload_api_v1_files_post": {
         "properties": {
           "file": {
@@ -4711,6 +5066,49 @@
         ],
         "title": "InterestsUpdate"
       },
+      "LeaderboardEntry": {
+        "properties": {
+          "user_id": {
+            "type": "integer",
+            "title": "User Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "attendance_count": {
+            "type": "integer",
+            "title": "Attendance Count"
+          },
+          "olympiad_count": {
+            "type": "integer",
+            "title": "Olympiad Count"
+          },
+          "points": {
+            "type": "integer",
+            "title": "Points"
+          },
+          "earned_count": {
+            "type": "integer",
+            "title": "Earned Count"
+          },
+          "rank": {
+            "type": "integer",
+            "title": "Rank"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "name",
+          "attendance_count",
+          "olympiad_count",
+          "points",
+          "earned_count",
+          "rank"
+        ],
+        "title": "LeaderboardEntry"
+      },
       "LocationImport": {
         "properties": {
           "token": {
@@ -5119,6 +5517,37 @@
         ],
         "title": "Page[FavoriteRead]"
       },
+      "Page_LeaderboardEntry_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/LeaderboardEntry"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "limit"
+        ],
+        "title": "Page[LeaderboardEntry]"
+      },
       "Page_MapEventRead_": {
         "properties": {
           "items": {
@@ -5248,17 +5677,6 @@
           "event": {
             "$ref": "#/components/schemas/EventShort"
           },
-          "reminder_minutes_before": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Reminder Minutes Before"
-          },
           "created_at": {
             "type": "string",
             "format": "date-time",
@@ -5268,27 +5686,12 @@
         "type": "object",
         "required": [
           "event",
-          "reminder_minutes_before",
           "created_at"
         ],
         "title": "PlanRead"
       },
       "PlanWrite": {
-        "properties": {
-          "reminder_minutes_before": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "maximum": 10080.0,
-                "minimum": 0.0
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Reminder Minutes Before"
-          }
-        },
+        "properties": {},
         "additionalProperties": false,
         "type": "object",
         "title": "PlanWrite"
@@ -5351,6 +5754,11 @@
       },
       "RegistrationRead": {
         "properties": {
+          "attended": {
+            "type": "boolean",
+            "title": "Attended",
+            "default": false
+          },
           "event": {
             "anyOf": [
               {

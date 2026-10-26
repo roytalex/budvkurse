@@ -14,3 +14,4 @@ from .registrations import Registration
 from .event_moderation import EventModeration
 
 from .messages import Conversation, Message
+from .attendance import Attendance
