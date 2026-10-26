@@ -1,0 +1,64 @@
+# Будь ВКурсе
+
+Сервис школьных и городских мероприятий: лента, карта, календарь, личные планы, напоминания и переписка с организаторами.
+
+## Возможности
+
+- Регистрация ученика или организатора, вход и обновление токенов.
+- Создание, редактирование и публикация мероприятий организаторами; удаление администратором.
+- Фильтры по населённому пункту, школе, теме и условиям участия.
+- Карта событий, календарь, избранное и запись участником.
+- Напоминания внутри сайта и приватные диалоги с организаторами.
+- Мобильная вёрстка и запуск через VS Code Live Server.
+
+## Стек и структура
+
+Фронтенд: HTML, CSS, JavaScript, Leaflet и MapLibre. Бэкенд: FastAPI, SQLAlchemy, Alembic и PostgreSQL. Бэкенд находится в папке `beckend` — именно так она называется в проекте.
+
+| Папка | Содержимое |
+|---|---|
+| `frontend` | Интерфейс сайта и тесты JavaScript |
+| `beckend` | API, модели, схемы, миграции и тесты |
+| `assets` | Фотографии и оформление |
+| `vendor` | Локальные библиотеки и их лицензии |
+| `.vscode` | Настройки Go Live |
+
+## Первый запуск на Windows
+
+Потребуются Python 3.12, PostgreSQL и Git. Для тестов JavaScript дополнительно нужен Node.js.
+
+```powershell
+git clone https://github.com/roytalex/budvkurse.git
+cd budvkurse\beckend
+py -3.12 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements-lock.txt
+createdb -U postgres budvkurse_app
+.\.venv\Scripts\python.exe -m scripts.configure
+```
+
+В мастере укажи имя созданной базы `budvkurse_app`, адрес и свои данные PostgreSQL. Команда `createdb` должна быть доступна в PATH; если её нет, используй полный путь к `PostgreSQL\17\bin\createdb.exe`.
+
+```powershell
+.\.venv\Scripts\python.exe -m alembic upgrade head
+.\.venv\Scripts\python.exe -m scripts.create_admin
+.\.venv\Scripts\python.exe -m uvicorn main:app --reload --host 127.0.0.1 --port 4174
+```
+
+Сайт: http://127.0.0.1:4174/ — API-документация: http://127.0.0.1:4174/docs.
+
+Репозиторий содержит исходники, но не готовую пользовательскую базу. Создай необходимые справочники и мероприятия после входа. `.env`, пароли, пользовательские загрузки, виртуальное окружение и резервные копии базы в Git не включены.
+
+## Go Live
+
+Открой в VS Code корневую папку проекта, оставь FastAPI работающим на порту `4174`, открой `frontend/index.html` и нажми **Go Live**. Адрес сайта: http://127.0.0.1:5500/frontend/index.html. Подробности: [GO-LIVE.md](GO-LIVE.md).
+
+## Документация
+
+- [Устройство бэкенда и команды](beckend/README.md)
+- [Сообщения и напоминания](COMMUNICATIONS.md)
+- [Подробная инструкция для исходной локальной установки](START.md)
+- [Отчёт о проверках](beckend/docs/VERIFICATION.md)
+
+Напоминания работают внутри сайта, без фоновых push при закрытом браузере. Поиск мест использует Photon/OpenStreetMap, карта — OpenFreeMap; для них нужен интернет. Поиск не является полным официальным реестром всех школ и населённых пунктов.
+
+Лицензии сторонних библиотек находятся в `vendor`, источники фотографий — в `assets/photos/CREDITS.md`.
