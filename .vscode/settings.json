@@ -1,0 +1,25 @@
+{
+  "liveServer.settings.host": "127.0.0.1",
+  "liveServer.settings.port": 5500,
+  "liveServer.settings.useLocalIp": false,
+  "liveServer.settings.root": "/frontend",
+  "liveServer.settings.mount": [
+    [
+      "/frontend",
+      "./frontend"
+    ],
+    [
+      "/assets",
+      "./assets"
+    ],
+    [
+      "/vendor",
+      "./vendor"
+    ]
+  ],
+  "liveServer.settings.proxy": {
+    "enable": true,
+    "baseUri": "/api",
+    "proxyUri": "http://127.0.0.1:4174/api"
+  }
+}
