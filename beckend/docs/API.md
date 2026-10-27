@@ -195,3 +195,8 @@ const events = await api("/events?city_id=1");
 - `GET /achievements/leaderboard?page=1&limit=20` — общий рейтинг.
 - `GET /users/ID/achievements` — награды другого активного участника без email и других закрытых данных.
 - `PUT /events/EVENT_ID/attendance/USER_ID` с `{"attended":true}` подтверждает посещение, `false` снимает отметку. Только владелец события или администратор.
+
+
+## Паспорт, команды, QR и отзывы
+
+Описание функций и список новых ручек: [ACTIVITY.md](../../ACTIVITY.md). Миграция 0004 добавляет teams, team_members и reviews. Сертификаты и QR формируются из подтверждённых посещений и записей; челленджи и рейтинг школ вычисляются из текущих данных.
