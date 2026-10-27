@@ -2,7 +2,7 @@ from sqlalchemy import select
 from core.errors import AppError
 from core.time import aware, utcnow
 from crud import common, favorites, plans, registrations, users
-from db.models import Event, TeamMember
+from db.models import Event, TeamMember, Plan
 from .events import accessible_event, serialize_many
 
 
@@ -23,8 +23,15 @@ async def save_plan(db, user, event_id, data):
     event = await accessible_event(db, event_id, user)
     if event.status not in ("published", "cancelled"):
         raise AppError(409, "В планы добавляют опубликованные события")
-    row = await plans.upsert_plan(db, user.id, event_id, data.model_dump())
-    return {"event": (await serialize_many(db, [event], user))[0], "created_at": row.created_at}
+    changes = data.model_dump(exclude_unset=True)
+    if "reminder_minutes_before" in changes:
+        if changes["reminder_minutes_before"] is not None and (event.status != "published" or aware(event.ends_at) <= utcnow()):
+            raise AppError(409, "Напоминание доступно только для предстоящего или текущего события")
+        current = await plans.get_plan(db, user.id, event_id)
+        if current is None or current.reminder_minutes_before != changes["reminder_minutes_before"]:
+            changes["reminder_read_for"] = None
+    row = await plans.upsert_plan(db, user.id, event_id, changes)
+    return {"event": (await serialize_many(db, [event], user))[0], "created_at": row.created_at, "reminder_minutes_before": row.reminder_minutes_before}
 
 
 async def personal_rows(db, rows, user):
@@ -36,6 +43,8 @@ async def personal_rows(db, rows, user):
         if row.event_id not in cards:
             continue
         values = {"event": cards[row.event_id], "created_at": row.created_at}
+        if isinstance(row, Plan):
+            values["reminder_minutes_before"] = row.reminder_minutes_before
         result.append(values)
     return result
 

@@ -116,15 +116,15 @@ async def test_cancelled_unregistered_and_self_attendance_rejected(api):
     assert (await client.put(f'{P}/events/999999/attendance/{user["id"]}', headers=admin, json={'attended':True})).status_code == 404
 
 
-async def test_retired_features_and_calendar_still_works(api):
+async def test_chats_stay_retired_and_calendar_supports_reminders(api):
     client = api[0]
     _, _, eid, _ = await event_setup(api)
     student, _, _ = await account(api)
     paths = client
     schema = (await paths.get('/openapi.json')).json()['paths']
-    assert not any('conversation' in p or 'reminder' in p or 'message' in p for p in schema)
+    assert not any('conversation' in p or 'message' in p for p in schema)
     saved = await client.put(f'{P}/me/plans/{eid}', headers=student, json={})
     assert saved.status_code == 200, saved.text
-    assert 'reminder_minutes_before' not in saved.json()
+    assert saved.json()['reminder_minutes_before'] is None
     assert (await client.get(P+'/me/plans', headers=student)).json()['total'] == 1
-    assert (await client.put(f'{P}/me/plans/{eid}', headers=student, json={'reminder_minutes_before':60})).status_code == 422
+    assert (await client.put(f'{P}/me/plans/{eid}', headers=student, json={'reminder_minutes_before':60})).status_code == 200

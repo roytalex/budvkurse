@@ -4,7 +4,8 @@ from api.deps import CurrentUser, DB, Organizer
 from crud import favorites, plans, registrations, users
 from schemas.common import Page, Pagination
 from schemas.favorites import FavoriteRead
-from schemas.plans import PlanFilters, PlanRead, PlanWrite
+from schemas.plans import PlanFilters, PlanRead, PlanWrite, ReminderRead, ReminderAck
+from services import reminders
 from schemas.registrations import RegistrationRead
 from services import personal
 from services.events import accessible_event
@@ -84,3 +85,14 @@ async def event_registrations(event_id: int, db: DB, user: Organizer, pagination
     attended = set((await db.scalars(select(Attendance.user_id).where(Attendance.event_id == event_id))).all())
     items = [RegistrationRead.model_validate(r).model_copy(update={"participant_name": people[r.user_id].name, "grade": people[r.user_id].grade, "attended": r.user_id in attended}) for r in rows]
     return dict(items=items, total=total, **pagination.model_dump())
+
+
+@router.get("/me/reminders", response_model=Page[ReminderRead], summary="Мои напоминания на сайте")
+async def my_reminders(db: DB, user: CurrentUser, pagination: Annotated[Pagination, Query()]):
+    return await reminders.list_reminders(db, user, pagination)
+
+
+@router.put("/me/reminders/{event_id}/read", status_code=204, summary="Отметить напоминание прочитанным")
+async def read_reminder(event_id: int, data: ReminderAck, db: DB, user: CurrentUser):
+    await reminders.acknowledge(db, user, event_id, data)
+    return Response(status_code=204)

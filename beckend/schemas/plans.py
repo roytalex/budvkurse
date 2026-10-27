@@ -1,16 +1,29 @@
 from datetime import datetime
-from pydantic import AwareDatetime, model_validator
+from pydantic import AwareDatetime, Field, StrictInt, model_validator
 from .common import InputModel, Pagination, ReadModel
 from .events import EventShort
 
 
 class PlanWrite(InputModel):
-    pass
+    reminder_minutes_before: StrictInt | None = Field(default=None, ge=0, le=10080)
 
 
 class PlanRead(ReadModel):
     event: EventShort
     created_at: datetime
+    reminder_minutes_before: int | None = None
+
+
+class ReminderRead(ReadModel):
+    event: EventShort
+    reminder_minutes_before: int
+    reminder_at: datetime
+    unread: bool
+    read: bool
+
+
+class ReminderAck(InputModel):
+    starts_at: AwareDatetime
 
 
 class PlanFilters(Pagination):
