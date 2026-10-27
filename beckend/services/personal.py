@@ -2,7 +2,7 @@ from sqlalchemy import select
 from core.errors import AppError
 from core.time import aware, utcnow
 from crud import common, favorites, plans, registrations, users
-from db.models import Event
+from db.models import Event, TeamMember
 from .events import accessible_event, serialize_many
 
 
@@ -70,4 +70,6 @@ async def cancel_registration(db, user, event_id):
         raise AppError(409, "После начала мероприятия запись нельзя отменить")
     row = await registrations.get_registration(db, user.id, event_id)
     if row and row.status == "registered":
+        if await db.scalar(select(TeamMember.id).where(TeamMember.event_id==event_id, TeamMember.user_id==user.id)):
+            raise AppError(409, "Сначала выйди из команды или удали свою команду, затем отмени запись")
         await registrations.cancel_registration(db, row)

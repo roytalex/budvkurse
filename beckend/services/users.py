@@ -11,6 +11,10 @@ async def update_profile(db, user, data):
 
 
 async def deactivate(db, user):
+    from sqlalchemy import delete
+    from db.models import Team, TeamMember
+    await db.execute(delete(TeamMember).where(TeamMember.user_id == user.id))
+    await db.execute(delete(Team).where(Team.captain_id == user.id))
     await users.deactivate_user(db, user)
     await sessions.revoke_user_sessions(db, user.id)
 

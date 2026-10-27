@@ -200,6 +200,32 @@
 | registered_at | TIMESTAMP WITH TIME ZONE | нет | — |
 | cancelled_at | TIMESTAMP WITH TIME ZONE | да | — |
 
+### reviews
+
+| Поле | Тип PostgreSQL | NULL | Связь |
+|---|---|---|---|
+| id | INTEGER | нет | — |
+| event_id | INTEGER | нет | events.id (CASCADE) |
+| user_id | INTEGER | нет | users.id (CASCADE) |
+| rating | INTEGER | нет | — |
+| text | TEXT | нет | — |
+| created_at | TIMESTAMP WITH TIME ZONE | нет | — |
+| updated_at | TIMESTAMP WITH TIME ZONE | нет | — |
+
+### teams
+
+| Поле | Тип PostgreSQL | NULL | Связь |
+|---|---|---|---|
+| id | INTEGER | нет | — |
+| event_id | INTEGER | нет | events.id (CASCADE) |
+| captain_id | INTEGER | нет | users.id (CASCADE) |
+| name | VARCHAR(80) | нет | — |
+| description | TEXT | нет | — |
+| looking_for | VARCHAR(200) | нет | — |
+| capacity | INTEGER | нет | — |
+| status | VARCHAR(10) | нет | — |
+| created_at | TIMESTAMP WITH TIME ZONE | нет | — |
+
 ### messages
 
 | Поле | Тип PostgreSQL | NULL | Связь |
@@ -211,6 +237,18 @@
 | body | TEXT | нет | — |
 | created_at | TIMESTAMP WITH TIME ZONE | нет | — |
 
+### team_members
+
+| Поле | Тип PostgreSQL | NULL | Связь |
+|---|---|---|---|
+| id | INTEGER | нет | — |
+| team_id | INTEGER | нет | teams.id (CASCADE) |
+| event_id | INTEGER | нет | events.id (CASCADE) |
+| user_id | INTEGER | нет | users.id (CASCADE) |
+| status | VARCHAR(10) | нет | — |
+| skills | VARCHAR(300) | нет | — |
+| created_at | TIMESTAMP WITH TIME ZONE | нет | — |
+
 ## Pydantic-схемы
 
 | Файл | Схемы и поля |
@@ -219,6 +257,7 @@
 | auth.py | **RegisterRequest**: email, password, name, role<br>**LoginRequest**: email, password<br>**RefreshRequest**: refresh_token<br>**TokenPair**: access_token, refresh_token, token_type |
 | cities.py | **CityCreate**: name, region, country_code, latitude, longitude<br>**CityUpdate**: name, region, country_code, latitude, longitude<br>**CityRead**: created_at, updated_at, name, region, country_code, latitude, longitude, id |
 | common.py | **InputModel**: пустое тело {}<br>**ReadModel**: пустое тело {}<br>**PatchModel**: пустое тело {}<br>**Pagination**: page, limit<br>**Page**: items, total, page, limit<br>**Timestamps**: created_at, updated_at |
+| community.py | **TeamWrite**: name, description, looking_for, capacity, status<br>**TeamJoin**: skills<br>**TeamDecision**: accept<br>**MemberRead**: user_id, name, status, skills<br>**TeamRead**: id, event_id, event_title, starts_at, captain_id, name, description, looking_for, capacity, status, member_count, my_status, members, requests<br>**ReviewWrite**: rating, text<br>**ReviewRead**: id, user_id, name, rating, text, created_at, updated_at<br>**ReviewsRead**: items, total, page, limit, average, mine, can_review<br>**VisitRead**: event_id, title, category, ends_at, confirmed_at<br>**PassportRead**: summary, interests, visits<br>**ChallengeRead**: code, title, description, progress, target, earned<br>**ChallengesRead**: month, timezone, challenges, history<br>**SchoolScore**: school_id, name, city, students, active_students, points, average, attendance_count, rank<br>**SchoolFilters**: page, limit, order<br>**TeamFilters**: page, limit, search<br>**TicketRead**: token, image, expires_at, event_title, name<br>**ScanWrite**: token<br>**ScanRead**: event_id, user_id, attended, confirmed_at, name |
 | events.py | **EventCreate**: title, description, category, city_id, school_id, cover_file_id, topic_ids, starts_at, ends_at, timezone, registration_deadline, format, place_name, address, latitude, longitude, online_url, min_grade, max_grade, min_age, max_age, price, capacity, registration_mode, registration_url, take_with_you<br>**EventUpdate**: title, description, category, city_id, school_id, cover_file_id, topic_ids, starts_at, ends_at, timezone, registration_deadline, format, place_name, address, latitude, longitude, online_url, min_grade, max_grade, min_age, max_age, price, capacity, registration_mode, registration_url, take_with_you<br>**EventRead**: created_at, updated_at, title, description, category, city_id, school_id, cover_file_id, topic_ids, starts_at, ends_at, timezone, registration_deadline, format, place_name, address, latitude, longitude, online_url, min_grade, max_grade, min_age, max_age, price, capacity, registration_mode, registration_url, take_with_you, id, organizer_id, status, cover_url, is_favorite, in_plans<br>**EventShort**: id, title, category, status, city_id, school_id, starts_at, ends_at, format, price, cover_url, is_favorite, in_plans, timezone, place_name, address, latitude, longitude, registration_deadline, registration_mode, min_grade, max_grade, min_age, max_age, capacity, topic_ids<br>**EventFilters**: search, city_id, school_id, category, topic_id, date_from, date_to, grade, age, format, price_min, price_max, place, sort, page, limit<br>**MapFilters**: search, city_id, school_id, category, topic_id, date_from, date_to, grade, age, format, price_min, price_max, place, sort, page, limit, west, south, east, north<br>**MapEventRead**: id, title, category, status, city_id, school_id, starts_at, ends_at, format, price, cover_url, is_favorite, in_plans, timezone, place_name, address, latitude, longitude, registration_deadline, registration_mode, min_grade, max_grade, min_age, max_age, capacity, topic_ids |
 | favorites.py | **FavoriteRead**: event, created_at |
 | files.py | **FileRead**: id, url, mime_type, size_bytes |
@@ -253,6 +292,7 @@
 | Файл | Функции |
 |---|---|
 | achievements.py | `set_attendance(db, actor, event_id, user_id, attended)`<br>`ranked_query()`<br>`leaderboard(db, pagination)`<br>`summary(db, user_id)` |
+| activity.py | `valid_visits(user_id)`<br>`passport(db, user_id, pagination)`<br>`ticket(db, user, event_id)`<br>`scan(db, actor, event_id, token)`<br>`certificate(db, user, event_id)`<br>`challenges(db, user, month)`<br>`school_leaderboard(db, pagination, order)` |
 | auth.py | `register(db, data)`<br>`issue_tokens(db, user)`<br>`login(db, data)`<br>`refresh(db, token)`<br>`logout(db, token)` |
 | catalog.py | `edit_city(db, row_id, patch)`<br>`remove_city(db, row_id)`<br>`create_school(db, data)`<br>`edit_school(db, row_id, patch)`<br>`deactivate_school(db, row_id)`<br>`edit_topic(db, row_id, patch)`<br>`remove_topic(db, row_id)` |
 | common.py | `require_row(db, model, row_id, *, lock=False)`<br>`validate(schema, data)`<br>`row_fields(row, schema)`<br>`check_location(db, city_id, school_id)`<br>`check_topics(db, topic_ids)` |
@@ -260,6 +300,8 @@
 | files.py | `inspect_image(content)`<br>`file_read(row)`<br>`upload(db, user, upload_file)`<br>`get_content(db, file_id, user)`<br>`remove(db, user, file_id)` |
 | locations.py | `_fetch(params)`<br>`provider_search(params)`<br>`_norm(value)`<br>`_distance(lat, lon, lat2, lon2)`<br>`_result(payload, label, source='OpenStreetMap / Photon')`<br>`from_feature(feature, kind, city=None)`<br>`search(db, query, kind, city_id=None)`<br>`select_location(db, token)` |
 | personal.py | `save_favorite(db, user, event_id)`<br>`save_plan(db, user, event_id, data)`<br>`personal_rows(db, rows, user)`<br>`register(db, user, event_id)`<br>`cancel_registration(db, user, event_id)` |
+| reviews.py | `can_review(db, user, event_id)`<br>`serialize(row, user)`<br>`listing(db, user, event_id, pagination)`<br>`save(db, user, event_id, data)`<br>`remove(db, user, review_id)` |
+| teams.py | `available_event(db, user, event_id, *, lock=False)`<br>`eligible(db, user_id, event_id)`<br>`load_team(db, user, team_id)`<br>`require_captain(team, user)`<br>`serialize(db, rows, user)`<br>`listing(db, user, pagination, event_id=None, search=None)`<br>`create(db, user, event_id, data)`<br>`edit(db, user, team_id, data)`<br>`remove(db, user, team_id)`<br>`join(db, user, team_id, data)`<br>`decide(db, user, team_id, member_id, accept)`<br>`leave(db, user, team_id)` |
 | users.py | `update_profile(db, user, data)`<br>`deactivate(db, user)`<br>`set_interests(db, user, topic_ids)` |
 
 ## Ручки
@@ -327,3 +369,21 @@
 | GET | `/api/v1/achievements/leaderboard` | Leaderboard |
 | GET | `/api/v1/users/{user_id}/achievements` | Participant Achievements |
 | PUT | `/api/v1/events/{event_id}/attendance/{user_id}` | Confirm Attendance |
+| GET | `/api/v1/me/passport` | Мой паспорт активности |
+| GET | `/api/v1/users/{user_id}/passport` | Паспорт активного участника |
+| GET | `/api/v1/me/challenges` | Челленджи выбранного месяца |
+| GET | `/api/v1/achievements/schools` | Рейтинг школ по сумме или среднему баллу |
+| POST | `/api/v1/events/{event_id}/ticket` | Получить свой QR на 5 минут |
+| POST | `/api/v1/events/{event_id}/scan` | Подтвердить посещение по QR участника |
+| GET | `/api/v1/events/{event_id}/certificate` | Скачать свой сертификат участия для печати и PDF |
+| GET | `/api/v1/teams` | Поиск команд на предстоящие события |
+| GET | `/api/v1/events/{event_id}/teams` | Команды события и доступные мне заявки |
+| POST | `/api/v1/events/{event_id}/teams` | Создать команду и стать капитаном |
+| PUT | `/api/v1/teams/{team_id}` | Изменить свою команду или закрыть набор |
+| DELETE | `/api/v1/teams/{team_id}` | Удалить свою команду |
+| POST | `/api/v1/teams/{team_id}/join` | Подать заявку в команду |
+| PUT | `/api/v1/teams/{team_id}/members/{user_id}` | Принять заявку или убрать участника |
+| DELETE | `/api/v1/teams/{team_id}/members/me` | Выйти из команды или отозвать заявку |
+| GET | `/api/v1/events/{event_id}/reviews` | Отзывы подтверждённых участников |
+| PUT | `/api/v1/events/{event_id}/review` | Добавить или изменить свой отзыв |
+| DELETE | `/api/v1/reviews/{review_id}` | Удалить свой отзыв; администратор может удалить любой |
