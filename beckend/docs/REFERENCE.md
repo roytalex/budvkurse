@@ -4,7 +4,7 @@
 
 ## Таблицы
 
-Таблицы conversations/messages и старые поля reminder_* сохранены только для совместимости прежних миграций и сохранности истории. Доступа к чатам и напоминаниям через API больше нет.
+Таблицы conversations/messages сохранены для совместимости миграций; чаты не доступны через API. Поля reminder_* в plans используются напоминаниями сайта, см. REMINDERS.md.
 
 ### cities
 
@@ -263,7 +263,7 @@
 | files.py | **FileRead**: id, url, mime_type, size_bytes |
 | locations.py | **LocationImport**: token<br>**LocationResult**: kind, name, label, region, address, latitude, longitude, token, source<br>**LocationSelection**: city, school |
 | moderation.py | **RejectEventRequest**: comment<br>**ModerationRead**: id, event_id, reviewer_id, decision, comment, created_at |
-| plans.py | **PlanWrite**: пустое тело {}<br>**PlanRead**: event, created_at<br>**PlanFilters**: page, limit, date_from, date_to |
+| plans.py | **PlanWrite**: reminder_minutes_before<br>**PlanRead**: event, created_at, reminder_minutes_before<br>**ReminderRead**: event, reminder_minutes_before, reminder_at, unread, read<br>**ReminderAck**: starts_at<br>**PlanFilters**: page, limit, date_from, date_to |
 | registrations.py | **RegistrationRead**: attended, event, participant_name, grade, id, user_id, event_id, status, registered_at, cancelled_at |
 | schools.py | **SchoolCreate**: city_id, name, address, latitude, longitude<br>**SchoolUpdate**: city_id, name, address, latitude, longitude, is_active<br>**SchoolRead**: created_at, updated_at, city_id, name, address, latitude, longitude, id, is_active |
 | topics.py | **TopicCreate**: name, slug<br>**TopicUpdate**: name, slug<br>**TopicRead**: created_at, updated_at, name, slug, id |
@@ -300,6 +300,7 @@
 | files.py | `inspect_image(content)`<br>`file_read(row)`<br>`upload(db, user, upload_file)`<br>`get_content(db, file_id, user)`<br>`remove(db, user, file_id)` |
 | locations.py | `_fetch(params)`<br>`provider_search(params)`<br>`_norm(value)`<br>`_distance(lat, lon, lat2, lon2)`<br>`_result(payload, label, source='OpenStreetMap / Photon')`<br>`from_feature(feature, kind, city=None)`<br>`search(db, query, kind, city_id=None)`<br>`select_location(db, token)` |
 | personal.py | `save_favorite(db, user, event_id)`<br>`save_plan(db, user, event_id, data)`<br>`personal_rows(db, rows, user)`<br>`register(db, user, event_id)`<br>`cancel_registration(db, user, event_id)` |
+| reminders.py | `list_reminders(db, user, pagination)`<br>`acknowledge(db, user, event_id, data)` |
 | reviews.py | `can_review(db, user, event_id)`<br>`serialize(row, user)`<br>`listing(db, user, event_id, pagination)`<br>`save(db, user, event_id, data)`<br>`remove(db, user, review_id)` |
 | teams.py | `available_event(db, user, event_id, *, lock=False)`<br>`eligible(db, user_id, event_id)`<br>`load_team(db, user, team_id)`<br>`require_captain(team, user)`<br>`serialize(db, rows, user)`<br>`listing(db, user, pagination, event_id=None, search=None)`<br>`create(db, user, event_id, data)`<br>`edit(db, user, team_id, data)`<br>`remove(db, user, team_id)`<br>`join(db, user, team_id, data)`<br>`decide(db, user, team_id, member_id, accept)`<br>`leave(db, user, team_id)` |
 | users.py | `update_profile(db, user, data)`<br>`deactivate(db, user)`<br>`set_interests(db, user, topic_ids)` |
@@ -358,6 +359,8 @@
 | GET | `/api/v1/events/{event_id}/registrations` | Список участников своего мероприятия |
 | DELETE | `/api/v1/events/{event_id}/registrations/me` | Отменить свою запись |
 | GET | `/api/v1/me/registrations` | Мои записи на мероприятия |
+| GET | `/api/v1/me/reminders` | Мои напоминания на сайте |
+| PUT | `/api/v1/me/reminders/{event_id}/read` | Отметить напоминание прочитанным |
 | POST | `/api/v1/files` | Загрузить фотографию |
 | GET | `/api/v1/files/{file_id}/content` | Изображение; чужие неопубликованные обложки скрыты |
 | DELETE | `/api/v1/files/{file_id}` | Удалить неиспользуемую фотографию |

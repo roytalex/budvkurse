@@ -2860,6 +2860,117 @@
         }
       }
     },
+    "/api/v1/me/reminders": {
+      "get": {
+        "tags": [
+          "Избранное, планы и участники"
+        ],
+        "summary": "Мои напоминания на сайте",
+        "operationId": "my_reminders_api_v1_me_reminders_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_ReminderRead_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/reminders/{event_id}/read": {
+      "put": {
+        "tags": [
+          "Избранное, планы и участники"
+        ],
+        "summary": "Отметить напоминание прочитанным",
+        "operationId": "read_reminder_api_v1_me_reminders__event_id__read_put",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Event Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReminderAck"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/files": {
       "post": {
         "tags": [
@@ -6780,6 +6891,37 @@
         ],
         "title": "Page[RegistrationRead]"
       },
+      "Page_ReminderRead_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ReminderRead"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "limit"
+        ],
+        "title": "Page[ReminderRead]"
+      },
       "Page_SchoolRead_": {
         "properties": {
           "items": {
@@ -6937,6 +7079,17 @@
             "type": "string",
             "format": "date-time",
             "title": "Created At"
+          },
+          "reminder_minutes_before": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reminder Minutes Before"
           }
         },
         "type": "object",
@@ -6947,7 +7100,21 @@
         "title": "PlanRead"
       },
       "PlanWrite": {
-        "properties": {},
+        "properties": {
+          "reminder_minutes_before": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 10080.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reminder Minutes Before"
+          }
+        },
         "additionalProperties": false,
         "type": "object",
         "title": "PlanWrite"
@@ -7111,6 +7278,54 @@
           "comment"
         ],
         "title": "RejectEventRequest"
+      },
+      "ReminderAck": {
+        "properties": {
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Starts At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "starts_at"
+        ],
+        "title": "ReminderAck"
+      },
+      "ReminderRead": {
+        "properties": {
+          "event": {
+            "$ref": "#/components/schemas/EventShort"
+          },
+          "reminder_minutes_before": {
+            "type": "integer",
+            "title": "Reminder Minutes Before"
+          },
+          "reminder_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Reminder At"
+          },
+          "unread": {
+            "type": "boolean",
+            "title": "Unread"
+          },
+          "read": {
+            "type": "boolean",
+            "title": "Read"
+          }
+        },
+        "type": "object",
+        "required": [
+          "event",
+          "reminder_minutes_before",
+          "reminder_at",
+          "unread",
+          "read"
+        ],
+        "title": "ReminderRead"
       },
       "ReviewRead": {
         "properties": {

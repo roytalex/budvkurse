@@ -41,3 +41,22 @@ test('Участники получают кнопку посещения пос
   assert.match(app.$('#modal-content').innerHTML,/data-attended="true" >Посетил/);
   assert.match(app.$('#modal-content').innerHTML,/data-attended="false">Снять отметку/);
 });
+
+
+test('Пьедестал сохраняет одинаковые места с сервера и не придумывает участников',async()=>{
+  const app=controller(async path=>path.startsWith('/me/')?mine:{total:2,items:[{...mine,user_id:2,name:'Первый',rank:1},{...mine,user_id:3,name:'Второй',rank:1}]});
+  app.state.view='leaderboard';await app.subject.show({aborted:false});
+  const html=app.$('#achievements-panel').innerHTML;
+  assert.equal((html.match(/class="podium-card/g)||[]).length,2);
+  assert.equal((html.match(/МЕСТО 1/g)||[]).length,2);
+  assert.doesNotMatch(html,/МЕСТО 2|МЕСТО 3/);
+});
+test('На второй странице нет ложного пьедестала, пустой рейтинг предлагает найти событие',async()=>{
+  const app=controller(async path=>path.startsWith('/me/')?mine:{total:21,items:[{...mine,user_id:22,name:'Участник',rank:21}]});
+  app.state.view='leaderboard';app.state.page=2;await app.subject.show({aborted:false});
+  assert.doesNotMatch(app.$('#achievements-panel').innerHTML,/class="podium-card/);
+  const empty=controller(async path=>path.startsWith('/me/')?{...mine,rank:null,points:0}:{total:0,items:[]});
+  empty.state.view='leaderboard';await empty.subject.show({aborted:false});
+  assert.match(empty.$('#achievements-panel').innerHTML,/Первое место пока свободно/);
+  assert.doesNotMatch(empty.$('#achievements-panel').innerHTML,/class="podium-card/);
+});
