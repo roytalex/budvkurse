@@ -182,6 +182,114 @@
         }
       }
     },
+    "/api/v1/events/{event_id}/certificate-link": {
+      "post": {
+        "tags": [
+          "Экспорт для мини-приложения"
+        ],
+        "summary": "Ссылка на собственный сертификат на 5 минут",
+        "operationId": "issue_certificate_link_api_v1_events__event_id__certificate_link_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Event Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/exports/certificate": {
+      "get": {
+        "tags": [
+          "Экспорт для мини-приложения"
+        ],
+        "summary": "Скачать сертификат по короткоживущей подписанной ссылке",
+        "operationId": "download_certificate_api_v1_exports_certificate_get",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 20,
+              "maxLength": 2000,
+              "title": "Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/integrations/max/webhook": {
+      "post": {
+        "tags": [
+          "MAX"
+        ],
+        "summary": "События MAX, защищённые секретом webhook",
+        "operationId": "webhook_api_v1_integrations_max_webhook_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/me": {
       "get": {
         "tags": [

@@ -21,3 +21,6 @@ beckend/uploads/
 *.backup
 *.log
 *.pid
+
+deploy/certs/*
+!deploy/certs/README.md

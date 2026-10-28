@@ -69,3 +69,6 @@ createdb -U postgres budvkurse_app
 Оформление, фото и анимации: [DESIGN.md](DESIGN.md).
 
 - [Напоминания на сайте](REMINDERS.md)
+
+- [Мини-приложение MAX и подключение бота](MAX.md)
+- [Размещение по HTTPS](deploy/README.md)

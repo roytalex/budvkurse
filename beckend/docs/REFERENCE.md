@@ -4,7 +4,7 @@
 
 ## Таблицы
 
-Таблицы conversations/messages сохранены для совместимости миграций; чаты не доступны через API. Поля reminder_* в plans используются напоминаниями сайта, см. REMINDERS.md.
+Чаты отключены. Поля reminder_* используются напоминаниями сайта. MAX и экспорт сертификатов описаны в MAX.md.
 
 ### cities
 
@@ -299,6 +299,7 @@
 | events.py | `accessible_event(db, event_id, user=None, *, write=False, lock=False)`<br>`check_event_links(db, data, user)`<br>`database_values(data)`<br>`create(db, user, data)`<br>`edit(db, event_id, user, patch)`<br>`check_publishable(event, *, require_future=True)`<br>`change_status(db, event_id, user, action, comment=None)`<br>`remove(db, event_id, user)`<br>`serialize_many(db, rows, user=None, *, full=False)`<br>`detail(db, event, user=None)` |
 | files.py | `inspect_image(content)`<br>`file_read(row)`<br>`upload(db, user, upload_file)`<br>`get_content(db, file_id, user)`<br>`remove(db, user, file_id)` |
 | locations.py | `_fetch(params)`<br>`provider_search(params)`<br>`_norm(value)`<br>`_distance(lat, lon, lat2, lon2)`<br>`_result(payload, label, source='OpenStreetMap / Photon')`<br>`from_feature(feature, kind, city=None)`<br>`search(db, query, kind, city_id=None)`<br>`select_location(db, token)` |
+| max_bot.py | `api_call(path, body=None, query=None)`<br>`recipient(update)`<br>`welcome(username)`<br>`process(update)` |
 | personal.py | `save_favorite(db, user, event_id)`<br>`save_plan(db, user, event_id, data)`<br>`personal_rows(db, rows, user)`<br>`register(db, user, event_id)`<br>`cancel_registration(db, user, event_id)` |
 | reminders.py | `list_reminders(db, user, pagination)`<br>`acknowledge(db, user, event_id, data)` |
 | reviews.py | `can_review(db, user, event_id)`<br>`serialize(row, user)`<br>`listing(db, user, event_id, pagination)`<br>`save(db, user, event_id, data)`<br>`remove(db, user, review_id)` |
@@ -307,7 +308,7 @@
 
 ## Ручки
 
-Кроме регистрации и входа, разделы с данными требуют Bearer-токен. Для изменения данных дополнительно проверяются роль и владелец.
+Разделы с данными требуют Bearer-токен и проверки прав. Исключения: скачивание сертификата по отдельной подписи на 5 минут и webhook MAX с секретным заголовком. Регистрация, вход и обновление сессии имеют собственную схему авторизации.
 
 | Метод | Путь | Назначение |
 |---|---|---|
@@ -316,6 +317,9 @@
 | POST | `/api/v1/auth/login` | Войти по email и паролю |
 | POST | `/api/v1/auth/refresh` | Обновить токены; старые перестанут работать |
 | POST | `/api/v1/auth/logout` | Отозвать сессию |
+| POST | `/api/v1/events/{event_id}/certificate-link` | Ссылка на собственный сертификат на 5 минут |
+| GET | `/api/v1/exports/certificate` | Скачать сертификат по короткоживущей подписанной ссылке |
+| POST | `/api/v1/integrations/max/webhook` | События MAX, защищённые секретом webhook |
 | GET | `/api/v1/me` | Мой профиль |
 | DELETE | `/api/v1/me` | Деактивировать аккаунт и отозвать сессии |
 | PATCH | `/api/v1/me` | Изменить профиль, сохранив пропущенные поля |

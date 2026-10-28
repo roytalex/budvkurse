@@ -39,11 +39,13 @@ async function refreshCatalogs(){const [cities,schools,topics]=await Promise.all
 async function initialize(){
   state.me=await Api.request('/me');
   await Promise.all([refreshPersonal(),refreshCatalogs()]);
+  await window.MaxShell?.ready;
   $('#auth-screen').hidden=true;$('#application').hidden=false;
   const desired=location.hash.slice(1);state.view=['feed','map','saved','calendar','registrations','manage','admin','achievements','leaderboard','passport','teams','challenges','schoolboard','reminders'].includes(desired)?desired:'feed';
   if(state.view==='manage'&&!canOrganize()||state.view==='admin'&&state.me.role!=='admin')state.view='feed';
   await loadView();
   Reminders.start();
+  window.dispatchEvent(new Event("app-session-ready"));
 }
 function filtersQuery(){const f={...state.filters,search:state.search,city_id:state.city,school_id:state.school,category:state.category,topic_id:state.topic,sort:state.sort};if(f.date){const [a,b]=EventDates.dayBounds(f.date);f.date_from=a.toISOString();f.date_to=b.toISOString();delete f.date;}return f;}
 function clearFilters(){state.city='';state.school='';state.category='';state.topic='';state.search='';state.filters={};$('#search').value='';state.page=1;}
@@ -155,6 +157,7 @@ async function handleClick(button){
   if(d.action==='resume'){await initialize();return;}
   if(!state.me)return;
   if(['community','hub','passportUser','schoolOrder','ticket','scanner','scanCamera','certificate','teamCreate','teamEdit','teamJoin','teamMember','teamLeave','teamDelete','reviewDelete'].some(key=>key in d)){await Activity.handleClick(d);return;}
+  if(d.maxDownload){await MaxShell.download(d.maxDownload,d.filename);return;}
   if(d.reminderSettings){Reminders.settings(d.reminderSettings);return;}
   if(d.reminderRead){await Reminders.read(d.reminderRead);return;}
   if(d.action==='organizer-intro'){if(canOrganize())await eventForm();else openModal('<h2>Создавай события.</h2><p>Публикация доступна аккаунту организатора. Выйди из текущего аккаунта и при регистрации выбери роль «Организатор».</p><button class="primary-button" data-action="logout">Выйти и зарегистрироваться</button>');return;}
