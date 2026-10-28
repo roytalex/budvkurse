@@ -28,8 +28,20 @@ def api_call(path, body=None, query=None):
     try:
         with urlopen(request, context=context, timeout=15) as response:
             return json.load(response)
-    except (HTTPError, URLError, TimeoutError, OSError):
-        raise AppError(502, 'MAX API недоступен. Проверь токен, сеть и доверенные сертификаты.') from None
+    except HTTPError as exc:
+        if exc.code == 401:
+            detail = 'MAX отклонил токен (401). Получи действующий токен в настройках бота.'
+        elif exc.code == 403:
+            detail = 'MAX запретил запрос (403). Проверь права и состояние бота на платформе.'
+        elif exc.code == 429:
+            detail = 'Слишком много запросов к MAX (429). Повтори позже.'
+        else:
+            detail = f'MAX вернул HTTP {exc.code}. Повтори позже или проверь настройки бота.'
+        raise AppError(502, detail) from None
+    except (URLError, TimeoutError, OSError):
+        raise AppError(502, 'Нет соединения с MAX API. Проверь сеть и доверенные сертификаты; настройка MAX_CA_BUNDLE описана в deploy/certs/README.md.') from None
+    except (ValueError, UnicodeError):
+        raise AppError(502, 'MAX вернул ответ в неожиданном формате. Повтори позже.') from None
 
 
 def recipient(update):
