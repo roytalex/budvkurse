@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 from api.deps import DB, get_current_user
-from api.routes import auth, catalog, events, files, personal, users, locations, achievements, community
+from api.routes import exports, max_bot, auth, catalog, events, files, personal, users, locations, achievements, community
 from core.config import get_settings
 from core.errors import AppError
 from db.db import get_engine
@@ -48,6 +48,8 @@ async def health(db: DB):
 
 
 app.include_router(auth.router, prefix="/api/v1")
+app.include_router(exports.router, prefix="/api/v1")
+app.include_router(max_bot.router, prefix="/api/v1")
 for router in (users.router, catalog.router, events.router, personal.router, files.router, locations.router, achievements.router, community.router):
 
     app.include_router(router, prefix="/api/v1", dependencies=[Depends(get_current_user)])
