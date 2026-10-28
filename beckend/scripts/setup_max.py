@@ -1,17 +1,43 @@
 import argparse
 import json
-from pathlib import Path
+import re
+from getpass import getpass
 from urllib.request import urlopen
 from core.config import get_settings
 from core.errors import AppError
 from services.max_bot import api_call
 
 
+def check_token(settings):
+    if not settings.max_bot_token:
+        token = getpass('Вставь токен MAX (ввод скрыт) и нажми Enter: ').strip()
+        if not token or any(c.isspace() for c in token) or token.startswith(('http://', 'https://')):
+            raise SystemExit('Нужен токен бота, а не ссылка. Получи его в настройках бота MAX.')
+        settings.max_bot_token = token
+    bot = api_call('/me')
+    if not isinstance(bot, dict) or bot.get('is_bot') is not True:
+        raise SystemExit('MAX не подтвердил, что токен принадлежит боту.')
+    username = bot.get('username')
+    if not isinstance(username, str) or not re.fullmatch(r'[A-Za-z0-9_]{1,64}', username):
+        raise SystemExit('Токен принят, но MAX не вернул публичное имя бота. Проверь его настройки на платформе.')
+    print('Токен работает. Ссылка на бота: https://max.ru/' + username)
+    print('MAX_BOT_USERNAME=' + username)
+    if settings.max_bot_username and settings.max_bot_username.lower() != username.lower():
+        print('В .env указано другое имя. Исправь MAX_BOT_USERNAME перед подключением webhook.')
+    print('Проверка не подключает мини-приложение и не сохраняет введённый токен.')
+    print('Для подключения сохрани токен в beckend/.env и выполни дальнейшие шаги из MAX.md.')
+
+
 def main():
     parser = argparse.ArgumentParser(description='Проверка настроек и подключение webhook MAX')
-    parser.add_argument('--register', action='store_true', help='Зарегистрировать webhook у уже созданного бота')
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument('--check-token', action='store_true', help='Проверить токен и получить ссылку бота без публичного сервера')
+    mode.add_argument('--register', action='store_true', help='Зарегистрировать webhook у уже созданного бота')
     args = parser.parse_args()
     settings = get_settings()
+    if args.check_token:
+        check_token(settings)
+        return
     fields = ('public_base_url', 'max_bot_token', 'max_bot_username', 'max_webhook_secret')
     missing = [name.upper() for name in fields if not getattr(settings, name)]
     if missing:
@@ -40,5 +66,7 @@ if __name__ == '__main__':
         main()
     except AppError as exc:
         raise SystemExit(exc.detail) from None
+    except (EOFError, KeyboardInterrupt):
+        raise SystemExit('Проверка отменена.') from None
     except OSError:
         raise SystemExit('Проверь сеть, HTTPS-сертификат и доступность сайта.') from None
