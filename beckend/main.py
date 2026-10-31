@@ -1,6 +1,7 @@
 
 from contextlib import asynccontextmanager
 from fastapi import Depends, FastAPI, Request
+from fastapi.openapi.docs import get_swagger_ui_html, get_swagger_ui_oauth2_redirect_html
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 from fastapi.middleware.cors import CORSMiddleware
@@ -23,10 +24,28 @@ async def lifespan(app):
 
 app = FastAPI(title="Будь ВКурсе API", version="1.0.0",
               description="Города, школы, мероприятия и личные планы. Сначала войди через /auth/login, затем вставь access_token в Authorize.",
-              lifespan=lifespan)
+              lifespan=lifespan, docs_url=None)
 app.add_middleware(CORSMiddleware, allow_origins=get_settings().cors_origins,
                    allow_credentials=False, allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
                    allow_headers=["Authorization", "Content-Type"])
+
+
+@app.get("/docs", include_in_schema=False)
+async def swagger_docs():
+    return get_swagger_ui_html(
+        openapi_url=app.openapi_url,
+        title=app.title + " — Swagger UI",
+        swagger_js_url="/vendor/swagger-ui/swagger-ui-bundle.js?v=5.34.1",
+        swagger_css_url="/vendor/swagger-ui/swagger-ui.css?v=5.34.1",
+        swagger_favicon_url="/assets/brand/favicon-blue.svg",
+        oauth2_redirect_url=app.swagger_ui_oauth2_redirect_url,
+        swagger_ui_parameters={"validatorUrl": None},
+    )
+
+
+@app.get(app.swagger_ui_oauth2_redirect_url, include_in_schema=False)
+async def swagger_oauth_redirect():
+    return get_swagger_ui_oauth2_redirect_html()
 
 
 @app.exception_handler(AppError)
