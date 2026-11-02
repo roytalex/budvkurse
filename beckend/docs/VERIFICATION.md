@@ -61,3 +61,14 @@ Go Live (23.10.2026): проверен установленный пакет Liv
 - Compose YAML разобран: наружу публикуются только порты HTTPS-прокси; БД и API остаются во внутренней сети. Docker отсутствует, образ не собирался.
 - Настоящий бот, HTTPS-хостинг и проверка на телефоне MAX ещё не выполнены: пользователь попросил подготовить подключение к будущему боту.
 - Визуальный браузерный просмотр ранее отклонён политикой URL; вёрстка требует ручного просмотра пользователем.
+
+
+## MAX notifications — 2026-11-02
+
+- 60 API tests and 10 subtests passed on isolated PostgreSQL, including 8 new MAX tests.
+- 37 frontend Node tests passed, including explicit notification consent, signed data submission and stale response protection.
+- Alembic 0005 upgrade and metadata drift check passed on test and installed databases. Existing row counts preserved; backup created before migration.
+- Verified the installed server: health, authentication, events, reminders, achievements, MAX connection status, local Swagger and new static assets.
+- Verified actual VS Code Live Server static routes, API proxy, login/logout and denial of private file paths.
+- Project-owned Python/JavaScript/CSS/HTML sources contain no comments; third-party license notices are retained.
+- MAX API calls were mocked in delivery tests. No real bot token or public HTTPS site was configured, so delivery in the real MAX client remains to be checked after configuration. Browser visual inspection was not performed.

@@ -394,3 +394,21 @@
 | GET | `/api/v1/events/{event_id}/reviews` | Отзывы подтверждённых участников |
 | PUT | `/api/v1/events/{event_id}/review` | Добавить или изменить свой отзыв |
 | DELETE | `/api/v1/reviews/{review_id}` | Удалить свой отзыв; администратор может удалить любой |
+
+
+## MAX: миграция 0005
+
+`users.max_contact_url` — необязательный контакт организатора VARCHAR(240). `PATCH /api/v1/me` принимает @username или допустимую ссылку MAX; участникам без регистрации контакт в карточке не выдаётся. `GET /api/v1/events/{id}` возвращает `organizer_max_url` только зарегистрированному участнику, владельцу или администратору.
+
+`max_connections`: user_id (PK/FK users.id, CASCADE), max_user_id (BIGINT UNIQUE), enabled (BOOLEAN), created_at (TIMESTAMPTZ).
+
+`plans`: max_delivery_for (TIMESTAMPTZ), max_delivery_minutes (INTEGER), max_sent_at (TIMESTAMPTZ), max_retry_at (TIMESTAMPTZ), max_attempts (INTEGER DEFAULT 0).
+
+| Метод | Путь | Назначение |
+|---|---|---|
+| GET | /api/v1/integrations/max/connection | Статус собственного подключения и ссылка бота |
+| POST | /api/v1/integrations/max/connection | Подключить MAX: {"init_data":"подписанные данные SDK"}; нужны Bearer и корректная подпись MAX |
+| DELETE | /api/v1/integrations/max/connection | Удалить собственное подключение |
+| POST | /api/v1/integrations/max/webhook | События бота; защищено секретом X-Max-Bot-Api-Secret |
+
+Доставка и ограничения: [MAX.md](../../MAX.md).

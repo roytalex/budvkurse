@@ -53,13 +53,13 @@ def recipient(update):
     message = update.get('message') or {}
     sender, destination = message.get('sender') or {}, message.get('recipient') or {}
     text = (message.get('body') or {}).get('text') or ''
-    if destination.get('chat_type') != 'dialog' or sender.get('is_bot') or text.strip().lower() not in ('/start', '/help', 'старт'):
+    if destination.get('chat_type') != 'dialog' or sender.get('is_bot') or text.strip().lower() not in ('/start', '/help', 'старт', '/stop', '/reminders'):
         return None
     return sender.get('user_id')
 
 
 def welcome(username):
-    return {'text': 'Привет! Это «Будь в курсе». Находи события, собирай команду и сохраняй достижения. Открой приложение и войди в свой аккаунт.',
+    return {'text': 'Привет! Это «Будь в курсе». Находи события, собирай команду и сохраняй достижения. Открой приложение и войди в свой аккаунт. В профиле подключи напоминания MAX. /reminders — настройки, /stop — отключить уведомления.',
             'attachments': [{'type': 'inline_keyboard', 'payload': {'buttons': [[
                 {'type': 'open_app', 'text': 'Открыть приложение', 'web_app': username, 'payload': 'feed'}
             ]]}}]}
@@ -79,7 +79,15 @@ async def process(update):
         raise AppError(503, 'Бот занят, доставка будет повторена')
     pending.add(key)
     try:
-        await asyncio.to_thread(api_call, '/messages', welcome(get_settings().max_bot_username), {'user_id': user_id})
+        body = welcome(get_settings().max_bot_username)
+        command = (((update.get('message') or {}).get('body') or {}).get('text') or '').strip().lower()
+        if command == '/stop':
+            from services.max_notifications import stop_for_max
+            await stop_for_max(user_id)
+            body['text'] = 'Напоминания MAX отключены. Включить их снова можно в профиле мини-приложения.'
+        if command == '/reminders':
+            body['attachments'][0]['payload']['buttons'][0][0].update(text='Мои напоминания', payload='reminders')
+        await asyncio.to_thread(api_call, '/messages', body, {'user_id': user_id})
         completed[key] = time.monotonic()
     finally:
         pending.discard(key)

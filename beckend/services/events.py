@@ -133,4 +133,11 @@ async def serialize_many(db, rows, user=None, *, full=False):
 
 
 async def detail(db, event, user=None):
-    return (await serialize_many(db, [event], user, full=True))[0]
+    result = (await serialize_many(db, [event], user, full=True))[0]
+    if user:
+        from db.models import User
+        registration = await registrations.get_registration(db, user.id, event.id)
+        if event.organizer_id == user.id or user.role == 'admin' or registration and registration.status == 'registered':
+            owner = await db.get(User, event.organizer_id)
+            result.organizer_max_url = owner.max_contact_url if owner and owner.is_active else None
+    return result

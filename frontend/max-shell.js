@@ -64,7 +64,7 @@
     const link=event.target.closest('a[href]');if(!link||link.hasAttribute('download'))return;
     let url;try{url=new URL(link.href,location.href);}catch{return;}
     if(!['http:','https:'].includes(url.protocol)||url.origin===location.origin)return;
-    const open=url.hostname==='max.ru'?bridge.openMaxLink:bridge.openLink;
+    const open=url.hostname==='max.ru'&&url.searchParams.has('startapp')?bridge.openMaxLink:bridge.openLink;
     if(typeof open!=='function')return;
     event.preventDefault();try{open.call(bridge,url.href);}catch{report('Не удалось открыть ссылку. Попробуй открыть сайт в браузере.');}
   });
@@ -86,5 +86,5 @@
     const result=await bridge.openCodeReader(true);
     return typeof result?.value==='string'?result.value:null;
   }
-  window.MaxShell={ready,active,launchTarget,prepareCertificate,download,scan,canScan:()=>typeof bridge?.openCodeReader==='function'};
+  window.MaxShell={ready,active,initData:()=>bridge?.initData||'',launchTarget,prepareCertificate,download,scan,canScan:()=>typeof bridge?.openCodeReader==='function'};
 })();
