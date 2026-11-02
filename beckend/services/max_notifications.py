@@ -54,6 +54,13 @@ async def status(db, user):
 
 async def connect(db, user, init_data):
     max_id = verified_user(init_data)
+    result = await bind_account(db, user, max_id)
+    from services.max_pairing import revoke
+    await revoke(db, user)
+    return result
+
+
+async def bind_account(db, user, max_id):
     await db.scalar(select(User).where(User.id == user.id).with_for_update())
     other = await db.scalar(select(MaxConnection).where(MaxConnection.max_user_id == max_id))
     if other and other.user_id != user.id:
@@ -70,6 +77,8 @@ async def connect(db, user, init_data):
 
 
 async def disconnect(db, user):
+    from services.max_pairing import revoke
+    await revoke(db, user)
     connection = await db.scalar(select(MaxConnection).where(MaxConnection.user_id == user.id).with_for_update())
     if connection:
         await db.delete(connection)
@@ -90,6 +99,9 @@ def reminder_message(event):
     body['text'] += '\nОткрой карточку, чтобы проверить детали. Отключить уведомления: /stop.'
     button = body['attachments'][0]['payload']['buttons'][0][0]
     button.update(text='Открыть событие', payload=f'event_{event.id}')
+    rows = body['attachments'][0]['payload']['buttons']
+    if len(rows) > 1:
+        rows[1][0].update(text='Открыть событие на сайте', url=get_settings().public_base_url + f'/?event={event.id}#feed')
     return body
 
 
@@ -114,11 +126,14 @@ async def deliver_one(factory, plan_id):
             return False
         plan.max_attempts += 1
         try:
-            result = await asyncio.to_thread(max_bot.api_call, '/messages', reminder_message(event), {'user_id': connection.max_user_id})
+            result = await max_bot.send_message(connection.max_user_id, reminder_message(event))
             if not isinstance(result, dict) or not isinstance(result.get('message'), dict):
                 raise AppError(502, 'MAX не подтвердил отправку')
-        except AppError:
-            plan.max_retry_at = now + timedelta(seconds=min(3600, 60 * 2**min(plan.max_attempts - 1, 6)))
+        except AppError as error:
+            if getattr(error, 'upstream_status', None) == 403:
+                connection.enabled = False
+            delay = max(getattr(error, 'retry_after', 0), min(3600, 60 * 2**min(plan.max_attempts - 1, 6)))
+            plan.max_retry_at = utcnow() + timedelta(seconds=delay)
             logging.getLogger(__name__).warning('MAX reminder deferred: plan=%s attempt=%s', plan.id, plan.max_attempts)
         else:
             plan.max_sent_at, plan.max_retry_at = utcnow(), None
@@ -157,3 +172,22 @@ async def run_worker(stop):
             await asyncio.wait_for(stop.wait(), timeout=30)
         except TimeoutError:
             pass
+
+
+async def bot_summary(max_id):
+    async with database.get_session_factory()() as db:
+        connection = await db.scalar(select(MaxConnection).join(User).where(MaxConnection.max_user_id == max_id, User.is_active.is_(True)))
+        if not connection:
+            return 'MAX пока не связан с аккаунтом сайта. Войди на сайт → профиль → «Напоминания в MAX» → «Подключить через бота». Затем подтверди подключение здесь.'
+        if not connection.enabled:
+            return 'Напоминания приостановлены. Чтобы включить их снова, открой профиль сайта → «Напоминания в MAX» и подтверди подключение. /start сам по себе уведомления не включает.'
+        rows = (await db.execute(select(Plan, Event).join(Event).where(Plan.user_id == connection.user_id, Plan.reminder_minutes_before.is_not(None), Event.status == 'published', Event.starts_at > utcnow()).order_by(Event.starts_at).limit(5))).all()
+        lines = ['Напоминания MAX включены.']
+        for plan, event in rows:
+            when = aware(event.starts_at).astimezone(ZoneInfo(event.timezone)).strftime('%d.%m в %H:%M')
+            timing = 'в момент начала' if plan.reminder_minutes_before == 0 else f'за {plan.reminder_minutes_before} мин.'
+            lines.append(f'• {event.title} — {when} ({event.timezone}), напомню {timing}.')
+        if not rows:
+            lines.append('Ближайших событий с напоминанием пока нет. Открой событие на сайте и настрой напоминание.')
+        lines.append('Все планы и время уведомлений — на сайте. Отключить напоминания: /stop.')
+        return '\n'.join(lines)

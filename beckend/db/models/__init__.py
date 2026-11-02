@@ -1,3 +1,4 @@
+from .max_link import MaxLink
 
 from .max_connection import MaxConnection
 from .user import User

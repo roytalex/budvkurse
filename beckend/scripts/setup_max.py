@@ -42,7 +42,7 @@ def main():
     if args.commands:
         check_token(settings)
         register_commands()
-        print('Меню команд MAX сохранено: /start, /help, /reminders, /stop.')
+        print('Меню команд MAX сохранено: /start, /help, /reminders, /status, /connect, /stop.')
         return
     fields = ('public_base_url', 'max_bot_token', 'max_bot_username', 'max_webhook_secret')
     missing = [name.upper() for name in fields if not getattr(settings, name)]
@@ -60,7 +60,7 @@ def main():
     if str(bot.get('username', '')).lower() != settings.max_bot_username.lower():
         raise SystemExit('Имя бота не совпадает с MAX_BOT_USERNAME. Проверь настройки.')
     result = api_call('/subscriptions', {'url': settings.public_base_url + '/api/v1/integrations/max/webhook',
-                                       'update_types': ['bot_started', 'message_created'],
+                                       'update_types': ['bot_started', 'bot_stopped', 'dialog_removed', 'message_created', 'message_callback'],
                                        'secret': settings.max_webhook_secret})
     if not result.get('success'):
         raise SystemExit('MAX не подтвердил подписку. Проверь HTTPS-адрес и доступность порта 443.')
