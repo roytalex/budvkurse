@@ -1,5 +1,7 @@
 
+import asyncio
 from contextlib import asynccontextmanager
+from services import max_notifications
 from fastapi import Depends, FastAPI, Request
 from fastapi.openapi.docs import get_swagger_ui_html, get_swagger_ui_oauth2_redirect_html
 from fastapi.staticfiles import StaticFiles
@@ -18,8 +20,14 @@ from db.db import get_engine
 @asynccontextmanager
 async def lifespan(app):
 
-    yield
-    await get_engine().dispose()
+    stop = asyncio.Event()
+    worker = asyncio.create_task(max_notifications.run_worker(stop))
+    try:
+        yield
+    finally:
+        stop.set()
+        await worker
+        await get_engine().dispose()
 
 
 app = FastAPI(title="Будь ВКурсе API", version="1.0.0",

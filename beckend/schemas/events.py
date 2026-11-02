@@ -94,6 +94,7 @@ class EventUpdate(PatchModel):
 
 
 class EventRead(EventCreate, Timestamps):
+    organizer_max_url: str | None = None
     id: int
     organizer_id: int
     status: EventStatus

@@ -61,5 +61,6 @@ class User(Base):
         nullable=False,
         server_default=true(),
     )
+    max_contact_url: Mapped[str | None] = mapped_column(String(240), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

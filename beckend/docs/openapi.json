@@ -290,6 +290,89 @@
         }
       }
     },
+    "/api/v1/integrations/max/connection": {
+      "get": {
+        "tags": [
+          "MAX"
+        ],
+        "summary": "Статус подключения напоминаний MAX",
+        "operationId": "connection_api_v1_integrations_max_connection_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "MAX"
+        ],
+        "summary": "Подключить MAX по подписанным данным мини-приложения",
+        "operationId": "connect_api_v1_integrations_max_connection_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MaxConnectRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "MAX"
+        ],
+        "summary": "Отключить напоминания MAX",
+        "operationId": "disconnect_api_v1_integrations_max_connection_delete",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/me": {
       "get": {
         "tags": [
@@ -5648,6 +5731,17 @@
             ],
             "title": "Take With You"
           },
+          "organizer_max_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Organizer Max Url"
+          },
           "id": {
             "type": "integer",
             "title": "Id"
@@ -6734,6 +6828,22 @@
           "capacity"
         ],
         "title": "MapEventRead"
+      },
+      "MaxConnectRequest": {
+        "properties": {
+          "init_data": {
+            "type": "string",
+            "maxLength": 16000,
+            "minLength": 1,
+            "title": "Init Data"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "init_data"
+        ],
+        "title": "MaxConnectRequest"
       },
       "MemberRead": {
         "properties": {
@@ -8224,6 +8334,17 @@
             "format": "date-time",
             "title": "Updated At"
           },
+          "max_contact_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Contact Url"
+          },
           "id": {
             "type": "integer",
             "title": "Id"
@@ -8301,6 +8422,19 @@
       },
       "UserUpdate": {
         "properties": {
+          "max_contact_url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 240
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Contact Url",
+            "clearable": true
+          },
           "name": {
             "anyOf": [
               {

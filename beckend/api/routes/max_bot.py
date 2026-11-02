@@ -1,6 +1,10 @@
 import hmac
 import json
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Response
+from pydantic import Field
+from schemas.common import InputModel
+from api.deps import DB, CurrentUser
+from services import max_notifications
 from core.config import get_settings
 from core.errors import AppError
 from services import max_bot
@@ -38,3 +42,23 @@ async def webhook(request: Request):
         raise AppError(422, 'Некорректное событие MAX') from None
     await max_bot.process(update)
     return {'ok': True}
+
+
+class MaxConnectRequest(InputModel):
+    init_data: str = Field(min_length=1, max_length=16000)
+
+
+@router.get('/connection', summary='Статус подключения напоминаний MAX')
+async def connection(db: DB, user: CurrentUser):
+    return await max_notifications.status(db, user)
+
+
+@router.post('/connection', summary='Подключить MAX по подписанным данным мини-приложения')
+async def connect(data: MaxConnectRequest, db: DB, user: CurrentUser):
+    return await max_notifications.connect(db, user, data.init_data)
+
+
+@router.delete('/connection', status_code=204, summary='Отключить напоминания MAX')
+async def disconnect(db: DB, user: CurrentUser):
+    await max_notifications.disconnect(db, user)
+    return Response(status_code=204)

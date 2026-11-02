@@ -4,6 +4,9 @@ from .common import check_location, check_topics
 
 async def update_profile(db, user, data):
     changes = data.model_dump(exclude_unset=True)
+    if changes.get('max_contact_url') and user.role not in ('organizer', 'admin'):
+        from core.errors import AppError
+        raise AppError(403, 'Контакт для участников указывает организатор')
     city_id = changes.get("city_id", user.city_id)
     school_id = changes.get("school_id", user.school_id)
     await check_location(db, city_id, school_id)

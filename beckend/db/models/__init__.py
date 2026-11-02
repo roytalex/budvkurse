@@ -1,4 +1,5 @@
 
+from .max_connection import MaxConnection
 from .user import User
 from .cities import City
 from .schools import School

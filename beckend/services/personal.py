@@ -67,6 +67,8 @@ async def register(db, user, event_id):
         raise AppError(409, "Ты уже записан")
     if event.capacity is not None and await registrations.count_registered(db, event_id) >= event.capacity:
         raise AppError(409, "Свободных мест нет")
+    if await plans.get_plan(db, user.id, event_id) is None:
+        await plans.upsert_plan(db, user.id, event_id, {'reminder_minutes_before': 60})
     if row:
         return await common.update(db, row, {"status": "registered", "registered_at": utcnow(), "cancelled_at": None})
     return await registrations.create_registration(db, user.id, event_id)
@@ -82,3 +84,6 @@ async def cancel_registration(db, user, event_id):
         if await db.scalar(select(TeamMember.id).where(TeamMember.event_id==event_id, TeamMember.user_id==user.id)):
             raise AppError(409, "Сначала выйди из команды или удали свою команду, затем отмени запись")
         await registrations.cancel_registration(db, row)
+        plan = await plans.get_plan(db, user.id, event_id)
+        if plan:
+            plan.reminder_minutes_before = None
