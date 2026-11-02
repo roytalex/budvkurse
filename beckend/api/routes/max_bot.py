@@ -4,7 +4,7 @@ from fastapi import APIRouter, Request, Response
 from pydantic import Field
 from schemas.common import InputModel
 from api.deps import DB, CurrentUser
-from services import max_notifications
+from services import max_notifications, max_pairing
 from core.config import get_settings
 from core.errors import AppError
 from services import max_bot
@@ -29,8 +29,16 @@ async def webhook(request: Request):
         update = json.loads(raw)
         if not isinstance(update, dict):
             raise ValueError()
-        for field in ('user', 'message'):
+        for field in ('user', 'message', 'callback'):
             if field in update and not isinstance(update[field], dict):
+                raise ValueError()
+        if 'payload' in update and update['payload'] is not None and not isinstance(update['payload'], str):
+            raise ValueError()
+        if 'callback' in update:
+            callback = update['callback']
+            if not isinstance(callback.get('user'), dict) or not isinstance(callback.get('callback_id'), str) or not 1 <= len(callback['callback_id']) <= 256:
+                raise ValueError()
+            if not isinstance(callback.get('payload'), str) or len(callback['payload']) > 512:
                 raise ValueError()
         if 'message' in update:
             for field in ('body', 'sender', 'recipient'):
@@ -61,4 +69,16 @@ async def connect(data: MaxConnectRequest, db: DB, user: CurrentUser):
 @router.delete('/connection', status_code=204, summary='Отключить напоминания MAX')
 async def disconnect(db: DB, user: CurrentUser):
     await max_notifications.disconnect(db, user)
+    return Response(status_code=204)
+
+
+@router.post('/connection/link', summary='Создать одноразовую ссылку подключения из обычного сайта')
+async def pairing_link(response: Response, db: DB, user: CurrentUser):
+    response.headers['Cache-Control'] = 'no-store'
+    return await max_pairing.issue(db, user)
+
+
+@router.delete('/connection/link', status_code=204, summary='Отменить ссылку подключения MAX')
+async def revoke_link(db: DB, user: CurrentUser):
+    await max_pairing.revoke(db, user)
     return Response(status_code=204)
