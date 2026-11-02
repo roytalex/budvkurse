@@ -5,7 +5,7 @@ from getpass import getpass
 from urllib.request import urlopen
 from core.config import get_settings
 from core.errors import AppError
-from services.max_bot import api_call
+from services.max_bot import api_call, register_commands
 
 
 def check_token(settings):
@@ -33,10 +33,16 @@ def main():
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument('--check-token', action='store_true', help='Проверить токен и получить ссылку бота без публичного сервера')
     mode.add_argument('--register', action='store_true', help='Зарегистрировать webhook у уже созданного бота')
+    mode.add_argument('--commands', action='store_true', help='Сохранить меню команд бота в MAX')
     args = parser.parse_args()
     settings = get_settings()
     if args.check_token:
         check_token(settings)
+        return
+    if args.commands:
+        check_token(settings)
+        register_commands()
+        print('Меню команд MAX сохранено: /start, /help, /reminders, /stop.')
         return
     fields = ('public_base_url', 'max_bot_token', 'max_bot_username', 'max_webhook_secret')
     missing = [name.upper() for name in fields if not getattr(settings, name)]
@@ -58,6 +64,8 @@ def main():
                                        'secret': settings.max_webhook_secret})
     if not result.get('success'):
         raise SystemExit('MAX не подтвердил подписку. Проверь HTTPS-адрес и доступность порта 443.')
+    register_commands()
+    print('Меню команд MAX сохранено.')
     print('Webhook подключён. Добавь URL мини-приложения в настройках бота MAX и нажми «Открыть».')
 
 
