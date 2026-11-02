@@ -15,7 +15,7 @@ completed = OrderedDict()
 pending = set()
 
 
-def api_call(path, body=None, query=None):
+def api_call(path, body=None, query=None, *, method=None):
     settings = get_settings()
     if not settings.max_bot_token:
         raise AppError(503, 'Бот MAX ещё не настроен')
@@ -24,7 +24,7 @@ def api_call(path, body=None, query=None):
         context.load_verify_locations(cafile=str(settings.max_ca_bundle))
     url = API_URL + path + ('?' + urlencode(query) if query else '')
     request = Request(url, data=json.dumps(body).encode() if body is not None else None,
-                      headers={'Authorization': settings.max_bot_token, 'Content-Type': 'application/json'})
+                      headers={'Authorization': settings.max_bot_token, 'Content-Type': 'application/json'}, method=method)
     try:
         with urlopen(request, context=context, timeout=15) as response:
             return json.load(response)
@@ -44,6 +44,30 @@ def api_call(path, body=None, query=None):
         raise AppError(502, 'MAX вернул ответ в неожиданном формате. Повтори позже.') from None
 
 
+def register_commands():
+    commands = [
+        {'name': 'start', 'description': 'Открыть «Будь в курсе»'},
+        {'name': 'help', 'description': 'Помощь и открытие сайта'},
+        {'name': 'reminders', 'description': 'Настроить напоминания'},
+        {'name': 'stop', 'description': 'Отключить напоминания MAX'},
+    ]
+    result = api_call('/me/commands', {'commands': commands}, method='PATCH')
+    if not isinstance(result, dict) or result.get('commands') != commands:
+        raise AppError(502, 'MAX не подтвердил сохранение меню команд.')
+
+
+def command_name(text):
+    parts = text.strip().lower().split(maxsplit=1)
+    if not parts:
+        return None
+    command, separator, username = parts[0].partition('@')
+    if separator and username != get_settings().max_bot_username.lower():
+        return None
+    if command == 'старт':
+        command = '/start'
+    return command if command in ('/start', '/help', '/stop', '/reminders') else None
+
+
 def recipient(update):
     if update.get('update_type') == 'bot_started':
         user = update.get('user') or {}
@@ -53,16 +77,18 @@ def recipient(update):
     message = update.get('message') or {}
     sender, destination = message.get('sender') or {}, message.get('recipient') or {}
     text = (message.get('body') or {}).get('text') or ''
-    if destination.get('chat_type') != 'dialog' or sender.get('is_bot') or text.strip().lower() not in ('/start', '/help', 'старт', '/stop', '/reminders'):
+    if destination.get('chat_type') != 'dialog' or sender.get('is_bot') or command_name(text) is None:
         return None
     return sender.get('user_id')
 
 
 def welcome(username):
-    return {'text': 'Привет! Это «Будь в курсе». Находи события, собирай команду и сохраняй достижения. Открой приложение и войди в свой аккаунт. В профиле подключи напоминания MAX. /reminders — настройки, /stop — отключить уведомления.',
-            'attachments': [{'type': 'inline_keyboard', 'payload': {'buttons': [[
-                {'type': 'open_app', 'text': 'Открыть приложение', 'web_app': username, 'payload': 'feed'}
-            ]]}}]}
+    buttons = [[{'type': 'open_app', 'text': 'Открыть приложение', 'web_app': username, 'payload': 'feed'}]]
+    public_url = get_settings().public_base_url
+    if public_url and public_url.startswith('https://'):
+        buttons.append([{'type': 'link', 'text': 'Открыть сайт в браузере', 'url': public_url.rstrip('/') + '/#feed'}])
+    return {'text': 'Привет! Это «Будь в курсе». Находи события, собирай команду и сохраняй достижения. Войди в свой аккаунт. Если мини-приложение не открывается, нажми «Открыть сайт в браузере». Напоминания MAX подключаются в профиле внутри мини-приложения. /reminders — настройки, /stop — отключить уведомления.',
+            'attachments': [{'type': 'inline_keyboard', 'payload': {'buttons': buttons}}]}
 
 
 async def process(update):
@@ -80,13 +106,16 @@ async def process(update):
     pending.add(key)
     try:
         body = welcome(get_settings().max_bot_username)
-        command = (((update.get('message') or {}).get('body') or {}).get('text') or '').strip().lower()
+        command = command_name(((update.get('message') or {}).get('body') or {}).get('text') or '')
         if command == '/stop':
             from services.max_notifications import stop_for_max
             await stop_for_max(user_id)
             body['text'] = 'Напоминания MAX отключены. Включить их снова можно в профиле мини-приложения.'
         if command == '/reminders':
-            body['attachments'][0]['payload']['buttons'][0][0].update(text='Мои напоминания', payload='reminders')
+            buttons = body['attachments'][0]['payload']['buttons']
+            buttons[0][0].update(text='Мои напоминания', payload='reminders')
+            if len(buttons) > 1:
+                buttons[1][0]['url'] = get_settings().public_base_url.rstrip('/') + '/#reminders'
         await asyncio.to_thread(api_call, '/messages', body, {'user_id': user_id})
         completed[key] = time.monotonic()
     finally:
