@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const fs = require('node:fs');
 
-function app({saved='', reduced=false, storageFails=false}={}) {
+function app({saved='', reduced=false, storageFails=false, mobile=false}={}) {
   let clicked, changed, intersection, observed, cancelled=0, started=0;
   class Element {
     constructor(){this.children=[];this.parentElement={children:[this]};this.attrs={};this.symbol={};}
@@ -24,7 +24,7 @@ function app({saved='', reduced=false, storageFails=false}={}) {
     unobserve(){}
   }
   class MutationObserver {observe(){}}
-  const context={window:{matchMedia:()=>media,IntersectionObserver},IntersectionObserver,MutationObserver,Element,localStorage:storage,
+  const context={window:{matchMedia:query=>query.includes('max-width')?{matches:mobile,addEventListener(){}}:media,IntersectionObserver},IntersectionObserver,MutationObserver,Element,localStorage:storage,
     document:{body,documentElement:root,querySelectorAll:()=>[button],addEventListener(_,fn){clicked=fn;}}};
   vm.runInNewContext(fs.readFileSync(require.resolve('../cinematic.js'),'utf8'),context);
   return {root,button,media,click:()=>clicked({target:button}),change:()=>changed(),enter:()=>intersection([{target:observed,isIntersecting:true}]),cancelled:()=>cancelled,started:()=>started,saved:()=>saved};
@@ -42,4 +42,9 @@ test('Выбор без анимаций сохраняется и примен�
 test('Недоступное хранилище не ломает переключение анимаций',()=>{
   const a=app({storageFails:true});assert.equal(a.root.dataset.motion,'on');
   a.click();assert.equal(a.root.dataset.motion,'off');a.click();assert.equal(a.root.dataset.motion,'on');
+});
+
+test('Мобильный экран показывает контент без декоративных анимаций',()=>{
+  const a=app({mobile:true,saved:'on'});a.enter();
+  assert.equal(a.started(),0);assert.equal(a.root.dataset.motion,'off');
 });

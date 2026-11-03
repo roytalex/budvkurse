@@ -63,6 +63,31 @@
     geography.addEventListener('change', geographyState);
     geographyState();
   }
+  const browse = document.querySelector('#browse-controls');
+  if (browse) {
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'browse-toggle';
+    toggle.textContent = 'Фильтры событий';
+    toggle.setAttribute('aria-controls', 'browse-controls');
+    toggle.setAttribute('aria-expanded', 'false');
+    browse.before(toggle);
+    const main = document.querySelector('#main');
+    function filtersState() {
+      toggle.hidden = browse.hidden;
+      const compact = ['map', 'calendar'].includes(main.dataset.view);
+      root.dataset.browse = compact ? 'collapsed' : 'expanded';
+      toggle.setAttribute('aria-expanded', String(!compact));
+    }
+    toggle.addEventListener('click', () => {
+      const expanded = root.dataset.browse !== 'expanded';
+      root.dataset.browse = expanded ? 'expanded' : 'collapsed';
+      toggle.setAttribute('aria-expanded', String(expanded));
+    });
+    new MutationObserver(filtersState).observe(main, {attributes:true, attributeFilter:['data-view']});
+    new MutationObserver(filtersState).observe(browse, {attributes:true, attributeFilter:['hidden']});
+    filtersState();
+  }
   function menuState() {
     document.querySelectorAll('[data-nav-open]').forEach(button => button.setAttribute('aria-expanded', String(!!menu?.open)));
   }
