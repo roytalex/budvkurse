@@ -21,7 +21,7 @@ window.LocationSearch=(()=>{
     if(seq!==serial||!dialog.open||!state.me)return;
     rows=result.items;
     $('#location-status').textContent=result.warning||(!rows.length?'Ничего не найдено. Попробуй другое название или добавь регион.':`Найдено вариантов: ${rows.length}. Если нужного нет — уточни запрос.`);
-    $('#location-results').innerHTML=rows.map((r,i)=>`<button type="button" class="location-result" data-geo-result="${i}"><span class="location-symbol">${context.kind==='school'?'▤':'⌖'}</span><span><b>${esc(r.name)}</b><small>${esc(r.label)}</small><em>${esc(r.source)}</em></span><span>Выбрать →</span></button>`).join('');
+    $('#location-results').innerHTML=rows.map((r,i)=>`<button type="button" class="location-result" data-geo-result="${i}"><span class="location-symbol">${context.kind==='school'?'▤':''}</span><span><b>${esc(r.name)}</b><small>${esc(r.label)}</small><em>${esc(r.source)}</em></span><span>Выбрать </span></button>`).join('');
   }
   async function apply(selection){
     if(!context)return;
