@@ -23,7 +23,7 @@ def test_commands():
 def test_menu_method_and_response():
     def response(path, body, *, method):
         assert path == '/me/commands' and method == 'PATCH'
-        assert {c['name'] for c in body['commands']} == {'start', 'help', 'stop', 'reminders', 'status', 'connect'}
+        assert {c['name'] for c in body['commands']} == {'start', 'help', 'stop', 'reminders', 'status', 'connect', 'events', 'calendar', 'map', 'teams', 'achievements'}
         return body
     with patch.object(max_bot, 'api_call', side_effect=response):
         max_bot.register_commands()
@@ -48,7 +48,7 @@ def test_request_method():
 
 def test_launch_fallback_and_deduplication():
     with patch.object(get_settings(), 'public_base_url', 'https://example.org'), patch.object(get_settings(), 'max_bot_username', 'school_bot'):
-        for command, target in [('/start payload', 'feed'), ('/reminders@school_bot', 'reminders')]:
+        for command, target in [('/start payload', 'feed'), ('/reminders@school_bot', 'reminders'), ('мои напоминания', 'reminders'), ('проверь подключение', 'reminders')]:
             update = {'update_type': 'message_created', 'message': {'sender': {'user_id': 123}, 'recipient': {'chat_type': 'dialog'}, 'body': {'text': command}}}
             max_bot.completed.clear()
             with patch.object(max_bot, 'api_call', return_value={'message': {}}) as send, patch('services.max_notifications.bot_summary', new=AsyncMock(return_value='status')):

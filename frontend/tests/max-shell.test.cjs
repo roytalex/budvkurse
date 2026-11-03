@@ -22,6 +22,7 @@ test('MAX launch only navigates after normal account login; unsafe user never au
 test('Launch payload only accepts known sections or numeric event IDs',()=>{
   const a=app();for(const value of ['https://evil.example','admin','event_-1','event_0','javascript:alert(1)',{},'a'.repeat(513)])assert.equal(a.api.launchTarget(value),null);
   assert.equal(a.api.launchTarget('event_123').event,123);
+  assert.equal(a.api.launchTarget('manage').view,'manage');
 });
 test('Native back closes menu, then dialog, then returns to feed',async()=>{
   const a=app();a.events['app-session-ready']();a.nav.open=true;await a.events.back();assert.ok(a.actions.includes('nav-close'));a.modal.open=true;await a.events.back();assert.ok(a.actions.includes('modal-close'));await a.events.back();assert.ok(a.actions.includes('view:feed'));

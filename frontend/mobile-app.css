@@ -13,7 +13,7 @@
  .global-search input{font-size:15px}
  .profile-button #avatar{width:38px;height:38px;font-size:14px;background:#eef3ff;color:#245be8}
  .reminder-bell{color:#546580}
- #welcome-banner,#photo-explore,#editorial-discovery,.page-footer{display:none!important}
+ .page-footer{display:none!important}
  .shell>main{padding:0 16px calc(94px + env(safe-area-inset-bottom));background:#f5f7fb}
  .page-heading{padding:20px 0 16px;border:0;gap:12px}
  .page-heading .eyebrow{display:none}
@@ -115,3 +115,68 @@
 
 .location-result-symbol{display:none}
 .achievement-symbol{display:flex;align-items:center;justify-content:center}
+
+@media(max-width:900px){
+ #welcome-banner:not([hidden]){display:grid;grid-template-columns:minmax(0,1fr);min-height:0;margin:16px 0 8px;border:1px solid #dce6f5;border-radius:20px;background:#fff;color:#162d50;overflow:hidden}
+ #welcome-banner:after{display:none}
+ #welcome-banner>.cinema-copy{width:auto;max-width:none;padding:24px 20px 20px}
+ #welcome-banner .hero-kicker{font-size:9px;line-height:1.5;letter-spacing:1px;color:#245be8}
+ #welcome-banner h2{font-family:inherit;font-size:clamp(26px,7.5vw,40px);font-weight:750;line-height:1.12;letter-spacing:-1px;margin:12px 0}
+ #welcome-banner .hero-word{display:block;color:#162d50;opacity:1;transform:none}
+ #welcome-banner .hero-accent{color:#245be8}
+ #welcome-banner p{font-size:14px;line-height:1.6;color:#546580;max-width:42ch;margin:0}
+ #welcome-banner .hero-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:18px}
+ #welcome-banner .hero-button,#welcome-banner .hero-secondary{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:12px 16px;border-radius:12px;font-size:13px;line-height:1.4;gap:0;margin:0}
+ #welcome-banner .hero-button{background:#245be8;color:#fff}
+ #welcome-banner .hero-secondary{color:#245be8;border:1px solid #dce6f5;background:#f3f7ff}
+ #welcome-banner .hero-footnote{display:none}
+ #welcome-banner>.hero-collage{position:relative;inset:auto;width:auto;height:190px;min-height:0;margin:0 12px;border-radius:14px;overflow:hidden;transform:none}
+ #welcome-banner .hero-main-photo{position:absolute;inset:0;border-radius:0;clip-path:none}
+ #welcome-banner .hero-main-photo img{width:100%;height:100%;object-fit:cover;transform:none}
+ #welcome-banner .hero-photo-label{left:16px;right:16px;bottom:16px;top:auto;font-size:9px;line-height:1.5;letter-spacing:1px}
+ #welcome-banner .hero-photo-label b{font-family:inherit;font-size:20px;letter-spacing:-.3px;line-height:1.2;margin-top:6px}
+ #welcome-banner .hero-links{position:static;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin:12px 0 0;border-top:1px solid #e0e7f0;background:#f6f9ff}
+ #welcome-banner .hero-links button{display:flex;flex-direction:column;justify-content:center;gap:6px;padding:14px 10px;min-width:0;min-height:78px;border-right:1px solid #e0e7f0;color:#162d50}
+ #welcome-banner .hero-links button:last-child{border-right:0}
+ #welcome-banner .hero-links small{font-size:7px;line-height:1.3;letter-spacing:.5px;color:#546580}
+ #welcome-banner .hero-links b{font-family:inherit;font-size:12px;font-weight:650;line-height:1.35;letter-spacing:0;overflow-wrap:anywhere}
+ #photo-explore:not([hidden]){display:block;margin:28px 0 0;padding:0;border:0}
+ #photo-explore .explore-heading{display:block;margin:0 0 14px}
+ #photo-explore h2{font-family:inherit;font-size:22px;line-height:1.25;letter-spacing:-.5px;font-weight:700;margin:0 0 6px}
+ #photo-explore .explore-heading>span{font-size:12px;color:#546580}
+ #photo-explore .explore-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;overflow:visible;margin:0;padding:0}
+ #photo-explore .explore-card{min-width:0;width:auto;min-height:180px;height:180px;margin:0;padding:14px;border-radius:16px;transform:none}
+ #photo-explore .explore-card img{filter:none;transform:none}
+ #photo-explore .explore-card b{font-family:inherit;font-size:20px;font-weight:650;letter-spacing:-.3px;line-height:1.2;margin-top:6px}
+ #photo-explore .explore-card small{font-size:7px;line-height:1.4;letter-spacing:.7px;color:#fff}
+ #editorial-discovery:not([hidden]){display:block;margin-top:28px}
+ #editorial-discovery .how-story{display:block;margin:0;padding:20px;background:#fff;border:1px solid #e0e7f0;border-radius:18px}
+ #editorial-discovery .how-heading{position:static;top:auto;padding:0}
+ #editorial-discovery .how-heading .editorial-kicker,#editorial-discovery .how-photo{display:none}
+ #editorial-discovery h2{font-family:inherit;font-size:23px;font-weight:700;line-height:1.25;letter-spacing:-.5px;margin:0 0 16px}
+ #editorial-discovery .how-heading h2 br{display:none}
+ #editorial-discovery .how-heading h2 em{font:inherit;color:#245be8;margin-left:5px}
+ #editorial-discovery .how-steps{display:grid;gap:0;margin:0;padding:0}
+ #editorial-discovery .story-step{display:grid;grid-template-columns:28px minmax(0,1fr);gap:10px;padding:16px 0;border-top:1px solid #e0e7f0;border-bottom:0;margin:0}
+ #editorial-discovery .story-step>span{font-family:inherit;font-size:19px;color:#7b9bd8;line-height:1.3}
+ #editorial-discovery .story-step h3{font-family:inherit;font-size:17px;line-height:1.3;letter-spacing:-.2px;margin:0 0 8px}
+ #editorial-discovery .story-step p{font-size:13px;line-height:1.6;color:#546580;margin:0}
+ #editorial-discovery .story-step button{min-height:44px;margin:8px 0 0;padding:10px 0;font-size:13px;color:#245be8}
+ #editorial-discovery .organizer-story{display:grid;grid-template-columns:1fr;gap:0;margin:20px 0 0;border-radius:18px;overflow:hidden;background:#eaf1ff}
+ #editorial-discovery .organizer-photo{height:160px;min-height:0;margin:0;border-radius:0}
+ #editorial-discovery .organizer-photo img{width:100%;height:100%;object-fit:cover;transform:none}
+ #editorial-discovery .organizer-photo>span{display:none}
+ #editorial-discovery .organizer-story>div:last-child{padding:22px}
+ #editorial-discovery .organizer-story .editorial-kicker{font-size:9px;color:#245be8;letter-spacing:1px}
+ #editorial-discovery .organizer-story h2{margin:10px 0 12px}
+ #editorial-discovery .organizer-story p{font-size:14px;line-height:1.6;margin:0 0 16px;color:#546580}
+ #editorial-discovery .organizer-story .hero-button{min-height:44px;padding:12px 16px;border-radius:12px;font-size:13px;background:#245be8;color:white;gap:0}
+ #editorial-discovery .final-opportunity{display:none}
+}
+@media(min-width:600px) and (max-width:900px){
+ #welcome-banner:not([hidden]){grid-template-columns:1.1fr 1fr;align-items:center}
+ #welcome-banner>.hero-collage{height:240px;margin:12px}
+ #welcome-banner .hero-links{grid-column:1/-1}
+ #photo-explore .explore-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+@media(max-width:380px){#photo-explore .explore-card{padding:12px}#photo-explore .explore-card b{font-size:17px}#photo-explore .explore-card small{font-size:6px;letter-spacing:.4px}}

@@ -72,3 +72,6 @@ createdb -U postgres budvkurse_app
 
 - [Мини-приложение MAX и подключение бота](MAX.md)
 - [Размещение по HTTPS](deploy/README.md)
+
+
+Инструкция для участников и проверяющих, включая экран ngrok: [Как открыть сайт и мини-приложение](HOW-TO-OPEN.md).
