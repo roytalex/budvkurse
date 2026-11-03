@@ -2,7 +2,8 @@ import argparse
 import json
 import re
 from getpass import getpass
-from urllib.request import urlopen
+from urllib.request import Request, urlopen
+from urllib.parse import urlsplit
 from core.config import get_settings
 from core.errors import AppError
 from services.max_bot import api_call, register_commands
@@ -53,7 +54,12 @@ def main():
     if not args.register:
         print('Настройки заполнены. Для подключения после размещения сайта: python -m scripts.setup_max --register')
         return
-    with urlopen(settings.public_base_url + '/health', timeout=10) as response:
+    headers = {'Accept': 'application/json'}
+    host = urlsplit(settings.public_base_url).hostname or ''
+    if host.endswith(('.ngrok-free.dev', '.ngrok-free.app', '.ngrok.app')):
+        headers['ngrok-skip-browser-warning'] = 'api-health-check'
+    request = Request(settings.public_base_url + '/health', headers=headers)
+    with urlopen(request, timeout=10) as response:
         if response.status != 200 or json.load(response).get('status') != 'ok':
             raise SystemExit('Публичный сайт ещё не готов')
     bot = api_call('/me')

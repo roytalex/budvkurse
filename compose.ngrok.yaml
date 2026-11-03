@@ -1,0 +1,69 @@
+name: budvkurse-ngrok
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: budvkurse_app
+      POSTGRES_USER: budvkurse
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Fill POSTGRES_PASSWORD in .env.ngrok}
+    volumes:
+      - database:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U budvkurse -d budvkurse_app"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+asyncpg://budvkurse:${POSTGRES_PASSWORD}@db:5432/budvkurse_app
+      JWT_SECRET: ${JWT_SECRET:?Fill JWT_SECRET in .env.ngrok}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:?Fill the assigned ngrok HTTPS URL in .env.ngrok}
+      CORS_ORIGINS: '["${PUBLIC_BASE_URL}","http://127.0.0.1:4174","http://localhost:4174","http://127.0.0.1:5500","http://localhost:5500"]'
+      MAX_BOT_TOKEN: ${MAX_BOT_TOKEN:?Fill MAX_BOT_TOKEN in .env.ngrok}
+      MAX_BOT_USERNAME: ${MAX_BOT_USERNAME:?Fill MAX_BOT_USERNAME in .env.ngrok}
+      MAX_WEBHOOK_SECRET: ${MAX_WEBHOOK_SECRET:?Fill MAX_WEBHOOK_SECRET in .env.ngrok}
+      MAX_CA_BUNDLE: ${MAX_CA_BUNDLE:-}
+    ports:
+      - "127.0.0.1:4174:8000"
+    volumes:
+      - uploads:/app/beckend/uploads
+      - ./deploy/certs:/app/certs:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import json, urllib.request; assert json.load(urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=5))['status'] == 'ok'"]
+      interval: 15s
+      timeout: 7s
+      retries: 8
+      start_period: 45s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+  ngrok:
+    image: ngrok/ngrok:3@sha256:ff3b5c3674432d14a786349908b7bdf28ee56c25662637afcbe7180d471993ef
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_healthy
+    environment:
+      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN:?Fill NGROK_AUTHTOKEN in .env.ngrok}
+    command: ["http", "http://app:8000", "--url", "${PUBLIC_BASE_URL:?Fill PUBLIC_BASE_URL in .env.ngrok}", "--inspect=false", "--log=stdout", "--log-format=json"]
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+volumes:
+  database:
+  uploads:
