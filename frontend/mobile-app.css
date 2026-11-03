@@ -112,3 +112,6 @@
  .calendar-jump button{width:auto;padding:8px;min-height:36px}
  .calendar-jump>span{flex:1}
 }
+
+.location-result-symbol{display:none}
+.achievement-symbol{display:flex;align-items:center;justify-content:center}

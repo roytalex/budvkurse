@@ -14,7 +14,7 @@
   let firstVisit=false;
   try{firstVisit=!sessionStorage.getItem('vkurse-intro-v3');sessionStorage.setItem('vkurse-intro-v3','1');}catch{}
   if(firstVisit&&enabled()&&document.body.animate){
-    intro=document.createElement('div');intro.className='intro-burst';intro.setAttribute('aria-hidden','true');intro.innerHTML='<div>будь<span>в курсе ↗</span></div>';document.body.append(intro);
+    intro=document.createElement('div');intro.className='intro-burst';intro.setAttribute('aria-hidden','true');intro.innerHTML='<div>будь<span>в курсе </span></div>';document.body.append(intro);
     const animation=play(intro,[{clipPath:'inset(0 0 0 0)'},{clipPath:'inset(0 0 0 0)',offset:.3},{clipPath:'inset(0 0 100% 0)'}],{duration:850,easing:'cubic-bezier(.76,0,.24,1)'});
     animation.finished.catch(()=>{}).finally(()=>{intro?.remove();intro=null;});
   }
