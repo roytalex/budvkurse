@@ -11,6 +11,7 @@ from weakref import WeakValueDictionary
 from core.config import get_settings
 from core.errors import AppError
 from core.frontend_delivery import frontend_version
+from services.max_conversation import OPENING_HELP, conversation
 
 API_URL = 'https://platform-api2.max.ru'
 completed = OrderedDict()
@@ -79,7 +80,12 @@ async def send_message(user_id, body, callback_id=None):
 def register_commands():
     commands = [
         {'name':'start', 'description':'Открыть «Будь в курсе»'},
-        {'name':'help', 'description':'Помощь и открытие сайта'},
+        {'name':'help', 'description':'Что умеет бот и как участвовать'},
+        {'name':'events', 'description':'Найти мероприятие'},
+        {'name':'calendar', 'description':'Открыть календарь событий'},
+        {'name':'map', 'description':'События на карте'},
+        {'name':'teams', 'description':'Найти команду'},
+        {'name':'achievements', 'description':'Мои достижения и рейтинг'},
         {'name':'reminders', 'description':'Ближайшие напоминания'},
         {'name':'status', 'description':'Проверить подключение MAX'},
         {'name':'connect', 'description':'Подключить аккаунт по коду с сайта'},
@@ -91,6 +97,10 @@ def register_commands():
 
 
 def command_name(text):
+    phrase = ' '.join(text.strip().lower().rstrip('?!.,').split())
+    aliases = {'мои напоминания': '/reminders', 'покажи напоминания': '/reminders', 'что запланировано': '/reminders', 'статус': '/status', 'проверь подключение': '/status'}
+    if phrase in aliases:
+        return aliases[phrase]
     parts = text.strip().lower().split(maxsplit=1)
     if not parts:
         return None
@@ -99,7 +109,7 @@ def command_name(text):
         return None
     if command == 'старт':
         command = '/start'
-    return command if command in ('/start', '/help', '/stop', '/reminders', '/status', '/connect') else None
+    return command if command in ('/start', '/help', '/stop', '/reminders', '/status', '/connect', '/events', '/calendar', '/map', '/teams', '/achievements') else None
 
 
 def recipient(update):
@@ -118,7 +128,10 @@ def recipient(update):
         return None
     sender, destination = message.get('sender') or {}, message.get('recipient') or {}
     text = (message.get('body') or {}).get('text') or ''
-    if destination.get('chat_type') != 'dialog' or sender.get('is_bot') or command_name(text) is None:
+    if destination.get('chat_type') != 'dialog' or sender.get('is_bot') or not text.strip():
+        return None
+    first = text.strip().split(maxsplit=1)[0]
+    if first.startswith('/') and '@' in first and first.partition('@')[2].lower() != get_settings().max_bot_username.lower():
         return None
     return sender.get('user_id')
 
@@ -132,8 +145,21 @@ def welcome(username):
     public_url = get_settings().public_base_url
     if public_url and public_url.startswith('https://'):
         buttons.append([{'type':'link', 'text':'Открыть сайт в браузере', 'url':browser_url('feed')}])
-    return {'text':'Привет! Это «Будь в курсе». Находи события, собирай команду и сохраняй достижения.\n\nЕсли мини-приложение не открывается, нажми «Открыть сайт в браузере». Для уведомлений войди на сайт → профиль → «Напоминания в MAX» → «Подключить через бота».\n\n/reminders — ближайшие напоминания\n/status — подключение MAX\n/stop — отключить напоминания\n/help — помощь',
+    note = '\n\n' + OPENING_HELP if '.ngrok' in public_url else ''
+    return {'text':'Привет! Я помощник «Будь в курсе». Помогу найти событие, собрать команду и разобраться с участием.\n\nНапиши, например: «хочу на олимпиаду», «покажи карту», «мои достижения» или «как записаться». Можно общаться обычными фразами.\n\nНапоминания подключаются в профиле сайта. Проверить связь: /status. Отключить уведомления: /stop.' + note,
             'attachments':[{'type':'inline_keyboard', 'payload':{'buttons':buttons}}]}
+
+
+def conversation_body(text):
+    answer, section, label = conversation(text)
+    body = welcome(get_settings().max_bot_username)
+    body['text'] = answer
+    buttons = body['attachments'][0]['payload']['buttons']
+    buttons[0][0].update(text=label, payload=section)
+    if len(buttons) > 1:
+        buttons[1][0]['url'] = browser_url(section)
+    return body
+
 
 
 def update_key(update):
@@ -199,8 +225,8 @@ async def process(update):
                 buttons[0][0].update(text='Мои напоминания', payload='reminders')
                 if len(buttons) > 1:
                     buttons[1][0]['url'] = browser_url('reminders')
-            elif command == '/help':
-                body['text'] = '1. Войди в аккаунт сайта.\n2. Профиль → «Напоминания в MAX» → «Подключить через бота».\n3. Подтверди подключение здесь.\n4. В карточке события выбери время напоминания.\n\nДобавление в планы не заменяет запись на событие. /reminders покажет ближайшие планы, /status — состояние связи, /stop отключит напоминания. Сервер проекта должен быть включён.'
+            if kind == 'message_created' and command not in ('/start', '/connect', '/stop', '/reminders', '/status'):
+                body = conversation_body(text)
         except AppError as error:
             if error.status >= 500:
                 raise

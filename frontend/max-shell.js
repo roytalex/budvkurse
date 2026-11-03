@@ -3,7 +3,7 @@
   const root=document.documentElement;
   const query=new URLSearchParams(location.search);
   const requested=query.get('max')==='1'||new URLSearchParams(location.hash.slice(1)).has('WebAppData');
-  const sections=new Set(['feed','map','calendar','saved','registrations','passport','teams','challenges','schoolboard','achievements','leaderboard','reminders']);
+  const sections=new Set(['feed','map','calendar','saved','registrations','passport','teams','challenges','schoolboard','achievements','leaderboard','reminders','manage']);
   let bridge=null,launchUsed=false,sessionReady=false;
   let finishLoading=()=>{};
   const ready=requested?new Promise(resolve=>{finishLoading=resolve;setTimeout(resolve,5000);}):Promise.resolve();
