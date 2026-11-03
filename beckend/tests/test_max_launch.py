@@ -59,6 +59,7 @@ def test_launch_fallback_and_deduplication():
                 assert rows[0][0]['type'] == 'open_app'
                 assert rows[0][0]['payload'] == target
                 assert rows[1][0]['type'] == 'link'
-                assert rows[1][0]['url'] == 'https://example.org/#' + target
+                assert rows[1][0]['url'] == max_bot.browser_url(target)
+                assert '?v=' in rows[1][0]['url']
     with patch.object(get_settings(), 'public_base_url', ''):
         assert len(max_bot.welcome('school_bot')['attachments'][0]['payload']['buttons']) == 1

@@ -10,6 +10,7 @@ from urllib.request import Request, urlopen
 from weakref import WeakValueDictionary
 from core.config import get_settings
 from core.errors import AppError
+from core.frontend_delivery import frontend_version
 
 API_URL = 'https://platform-api2.max.ru'
 completed = OrderedDict()
@@ -122,11 +123,15 @@ def recipient(update):
     return sender.get('user_id')
 
 
+def browser_url(section='feed'):
+    return get_settings().public_base_url.rstrip('/') + '/?v=' + frontend_version() + '#' + section
+
+
 def welcome(username):
     buttons = [[{'type':'open_app', 'text':'Открыть приложение', 'web_app':username, 'payload':'feed'}]]
     public_url = get_settings().public_base_url
     if public_url and public_url.startswith('https://'):
-        buttons.append([{'type':'link', 'text':'Открыть сайт в браузере', 'url':public_url.rstrip('/') + '/#feed'}])
+        buttons.append([{'type':'link', 'text':'Открыть сайт в браузере', 'url':browser_url('feed')}])
     return {'text':'Привет! Это «Будь в курсе». Находи события, собирай команду и сохраняй достижения.\n\nЕсли мини-приложение не открывается, нажми «Открыть сайт в браузере». Для уведомлений войди на сайт → профиль → «Напоминания в MAX» → «Подключить через бота».\n\n/reminders — ближайшие напоминания\n/status — подключение MAX\n/stop — отключить напоминания\n/help — помощь',
             'attachments':[{'type':'inline_keyboard', 'payload':{'buttons':buttons}}]}
 
@@ -193,7 +198,7 @@ async def process(update):
                 buttons = body['attachments'][0]['payload']['buttons']
                 buttons[0][0].update(text='Мои напоминания', payload='reminders')
                 if len(buttons) > 1:
-                    buttons[1][0]['url'] = get_settings().public_base_url.rstrip('/') + '/#reminders'
+                    buttons[1][0]['url'] = browser_url('reminders')
             elif command == '/help':
                 body['text'] = '1. Войди в аккаунт сайта.\n2. Профиль → «Напоминания в MAX» → «Подключить через бота».\n3. Подтверди подключение здесь.\n4. В карточке события выбери время напоминания.\n\nДобавление в планы не заменяет запись на событие. /reminders покажет ближайшие планы, /status — состояние связи, /stop отключит напоминания. Сервер проекта должен быть включён.'
         except AppError as error:

@@ -15,6 +15,7 @@ from api.deps import DB, get_current_user
 from api.routes import exports, max_bot, auth, catalog, events, files, personal, users, locations, achievements, community
 from core.config import get_settings
 from core.errors import AppError
+from core.frontend_delivery import FrontendFiles
 from db.db import get_engine
 
 
@@ -91,4 +92,4 @@ for name in ("assets", "vendor"):
     if directory.is_dir():
         app.mount(f"/{name}", StaticFiles(directory=directory), name=name)
 if (project_root / "frontend").is_dir():
-    app.mount("/", StaticFiles(directory=project_root / "frontend", html=True), name="frontend")
+    app.mount("/", FrontendFiles(directory=project_root / "frontend", html=True), name="frontend")
