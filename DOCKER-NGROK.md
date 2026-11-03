@@ -58,3 +58,7 @@ docker compose --env-file .env.ngrok -f compose.ngrok.yaml config --quiet
 ```
 
 Не публикуй полный вывод `docker compose config` или `docker inspect`: в них могут находиться ключи. Журналы контейнеров ограничены по объёму. Инспектор HTTP-запросов ngrok отключён, а порт приложения опубликован только на `127.0.0.1`. Токены не встраиваются в Docker-образ.
+
+## Резервный российский адрес
+
+Добавлен Docker-контейнер CloudPub и выбор адресов в боте: [инструкция](CLOUDPUB.md). `start-docker.cmd` включает оба туннеля при заполненном ключе CloudPub.

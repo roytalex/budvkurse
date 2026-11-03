@@ -14,12 +14,15 @@ if not exist ".env.ngrok" (
   pause
   exit /b 1
 )
-docker compose --env-file .env.ngrok -f compose.ngrok.yaml config --quiet
+set "EXTRA_PROFILE="
+findstr /r "^CLOUDPUB_TOKEN=." ".env.ngrok" >nul 2>nul
+if not errorlevel 1 set "EXTRA_PROFILE=--profile cloudpub"
+docker compose --env-file .env.ngrok -f compose.ngrok.yaml %EXTRA_PROFILE% config --quiet
 if errorlevel 1 (
   pause
   exit /b 1
 )
-docker compose --env-file .env.ngrok -f compose.ngrok.yaml up -d --build --wait --wait-timeout 180
+docker compose --env-file .env.ngrok -f compose.ngrok.yaml %EXTRA_PROFILE% up -d --build --wait --wait-timeout 180
 if errorlevel 1 (
   echo Startup is incomplete. Check Docker Desktop and the container logs.
   pause

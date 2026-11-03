@@ -16,9 +16,11 @@
     return match?{event:Number(match[1])}:null;
   }
   async function applyLaunch(){
-    if(!bridge||launchUsed||!sessionReady)return;
+    if(launchUsed||!sessionReady)return;
+    const payload=bridge?.initDataUnsafe?.start_param||query.get('launch');
+    if(!payload)return;
     launchUsed=true;
-    const target=launchTarget(bridge.initDataUnsafe?.start_param);
+    const target=launchTarget(payload);
     if(!target)return;
     try{if(target.view)await navigate(target.view);else await openEvent(target.event);}catch{report('Не удалось открыть ссылку на событие. Найди его в ленте.');}
   }

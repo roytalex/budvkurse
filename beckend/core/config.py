@@ -17,19 +17,21 @@ class Settings(BaseSettings):
     refresh_token_days: int = Field(default=30, ge=1, le=365)
     cors_origins: list[str] = ["http://127.0.0.1:4174", "http://localhost:4174"]
     public_base_url: str = ""
+    cloudpub_base_url: str = ""
+    max_webhook_base_url: str = ""
     max_bot_token: str = ""
     max_bot_username: str = ""
     max_webhook_secret: str = ""
     max_ca_bundle: Path | None = None
 
-    @field_validator("public_base_url")
+    @field_validator("public_base_url", "cloudpub_base_url", "max_webhook_base_url")
     @classmethod
     def public_https(cls, value):
         if not value:
             return value
         parsed = urlsplit(value)
         if parsed.scheme != "https" or not parsed.hostname or "." not in parsed.hostname or parsed.username or parsed.password or parsed.query or parsed.fragment or parsed.path not in ("", "/") or parsed.port not in (None, 443):
-            raise ValueError("PUBLIC_BASE_URL должен быть HTTPS-адресом сайта без пути и параметров")
+            raise ValueError("Публичный URL должен быть HTTPS-адресом сайта без пути и параметров")
         return value.rstrip("/")
 
     @field_validator("max_bot_username")
