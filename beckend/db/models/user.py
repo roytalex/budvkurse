@@ -10,6 +10,7 @@ class User(Base):
     __tablename__ = "users"
 
     __table_args__ = (
+        CheckConstraint("role != 'organizer' OR (grade IS NULL AND school_id IS NULL)", name="check_organizer_no_school"),
         CheckConstraint(
             "grade BETWEEN 1 AND 11",
             name="check_users_grade",

@@ -99,9 +99,6 @@ def reminder_message(event):
     body['text'] += '\nОткрой карточку, чтобы проверить детали. Отключить уведомления: /stop.'
     button = body['attachments'][0]['payload']['buttons'][0][0]
     button.update(text='Открыть событие', payload=f'event_{event.id}')
-    rows = body['attachments'][0]['payload']['buttons']
-    if len(rows) > 1:
-        rows[1][0].update(text='Открыть событие на сайте', url=get_settings().public_base_url + f'/?event={event.id}#feed')
     return body
 
 

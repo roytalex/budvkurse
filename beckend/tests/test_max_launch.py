@@ -46,7 +46,7 @@ def test_request_method():
         assert max_bot.api_call('/me/commands', {'commands': []}, method='PATCH') == {'commands': []}
 
 
-def test_launch_fallback_and_deduplication():
+def test_miniapp_launch_and_deduplication():
     with patch.object(get_settings(), 'public_base_url', 'https://example.org'), patch.object(get_settings(), 'max_bot_username', 'school_bot'):
         for command, target in [('/start payload', 'feed'), ('/reminders@school_bot', 'reminders'), ('мои напоминания', 'reminders'), ('проверь подключение', 'reminders')]:
             update = {'update_type': 'message_created', 'message': {'sender': {'user_id': 123}, 'recipient': {'chat_type': 'dialog'}, 'body': {'text': command}}}
@@ -58,8 +58,7 @@ def test_launch_fallback_and_deduplication():
                 rows = send.call_args.args[1]['attachments'][0]['payload']['buttons']
                 assert rows[0][0]['type'] == 'open_app'
                 assert rows[0][0]['payload'] == target
-                assert rows[1][0]['type'] == 'link'
-                assert rows[1][0]['url'] == max_bot.browser_url(target)
-                assert '?v=' in rows[1][0]['url']
+                assert len(rows) == 1
+                assert all(button['type'] == 'open_app' for row in rows for button in row)
     with patch.object(get_settings(), 'public_base_url', ''):
         assert len(max_bot.welcome('school_bot')['attachments'][0]['payload']['buttons']) == 1

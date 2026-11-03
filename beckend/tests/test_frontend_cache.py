@@ -39,10 +39,8 @@ def test_version_changes_with_styles_but_not_file_order(tmp_path):
     assert asset_version(tmp_path) != initial
 
 
-def test_bot_browser_link_uses_deployment_version():
-    with patch.object(get_settings(), 'public_base_url', 'https://example.org'), patch.object(max_bot, 'frontend_version', return_value='new-release'):
-        url = max_bot.browser_url('reminders')
-        parsed = urlsplit(url)
-        assert parsed.fragment == 'reminders'
-        assert parse_qs(parsed.query) == {'v': ['new-release']}
-        assert parsed.netloc == 'example.org'
+def test_bot_only_opens_miniapp_even_with_public_url():
+    with patch.object(get_settings(), 'public_base_url', 'https://example.org'):
+        buttons = max_bot.welcome('school_bot')['attachments'][0]['payload']['buttons']
+        assert len(buttons) == 1
+        assert buttons[0][0]['type'] == 'open_app'
