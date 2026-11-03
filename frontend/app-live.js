@@ -208,6 +208,7 @@ async function handleClick(button){
     case 'map-expand':EventMap.expand();break;
     case 'map-locate':EventMap.locate();break;
     case 'picker-locate':EventMap.locate(true);break;
+    case 'picker-retry':EventMap.retryPicker();break;
     case 'picker-expand':EventMap.expandPicker();break;
     case 'map-city':EventMap.city();break;
     case 'calendar-nearest':{
