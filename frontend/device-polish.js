@@ -96,13 +96,27 @@
   let maxHeight = window.innerHeight;
   function viewport() {
     const visual = window.visualViewport;
-    const editing = document.activeElement?.matches('input:not([type="checkbox"]):not([type="radio"]),textarea,[contenteditable="true"]');
+    const editing = document.activeElement?.matches('input:not([type="checkbox"]):not([type="radio"]),textarea,select,[contenteditable="true"]');
     if (!editing) maxHeight = window.innerHeight;
     const height = visual?.height || window.innerHeight;
     const keyboard = !!editing && (Math.max(maxHeight, window.innerHeight) - height > 150) && (!visual || visual.scale === 1);
     root.dataset.keyboard = keyboard ? 'open' : 'closed';
+    const active = document.activeElement;
+    const scroller = editing && active?.closest?.('#modal-content');
+    if (scroller && (!visual || visual.scale === 1)) requestAnimationFrame(() => {
+      if (document.activeElement !== active) return;
+      const field = active.getBoundingClientRect(), box = scroller.getBoundingClientRect();
+      const top = box.top + 60, bottom = box.bottom - 24;
+      if (field.bottom > bottom) scroller.scrollTop += field.bottom - bottom;
+      else if (field.top < top) scroller.scrollTop -= top - field.top;
+    });
+    if (!visual || visual.scale === 1) {
+      root.style.setProperty('--visible-height', `${Math.max(180, Math.round(height))}px`);
+      root.style.setProperty('--visible-top', `${Math.max(0, Math.round(visual?.offsetTop || 0))}px`);
+    }
   }
   window.visualViewport?.addEventListener('resize', viewport, {passive:true});
+  window.visualViewport?.addEventListener('scroll', viewport, {passive:true});
   window.addEventListener('resize', viewport, {passive:true});
   window.addEventListener('orientationchange', () => { maxHeight = window.innerHeight; });
   document.addEventListener('focusin', viewport);
