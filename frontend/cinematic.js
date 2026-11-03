@@ -6,7 +6,8 @@
   const animations = new Set();
   const seen = new WeakSet();
   const selector = '.event-card,.explore-card,.achievement-card,.team-card,.school-score,.visit-row,.passport-cover,.challenge-banner,.achievement-hero,.auth-card,.agenda-card,.podium-card,.ranking-stage,.collection-hero,.my-standing,.team-intro';
-  const enabled = () => !media.matches && preference !== 'off';
+  const compact = window.matchMedia('(max-width: 900px), (pointer: coarse)');
+  const enabled = () => !media.matches && !compact.matches && preference !== 'off';
   const observer = 'IntersectionObserver' in window ? new IntersectionObserver(entries => {
     entries.forEach(entry => {
       if (!entry.isIntersecting) return;
@@ -47,6 +48,7 @@
     update();
   });
   media.addEventListener('change', update);
+  compact.addEventListener('change', update);
   update();
   observe(document.body);
   if (observer) {

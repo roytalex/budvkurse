@@ -7,6 +7,7 @@ from fastapi.openapi.docs import get_swagger_ui_html, get_swagger_ui_oauth2_redi
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
@@ -33,6 +34,7 @@ async def lifespan(app):
 app = FastAPI(title="Будь ВКурсе API", version="1.0.0",
               description="Города, школы, мероприятия и личные планы. Сначала войди через /auth/login, затем вставь access_token в Authorize.",
               lifespan=lifespan, docs_url=None)
+app.add_middleware(GZipMiddleware, minimum_size=1000, compresslevel=5)
 app.add_middleware(CORSMiddleware, allow_origins=get_settings().cors_origins,
                    allow_credentials=False, allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
                    allow_headers=["Authorization", "Content-Type"])
