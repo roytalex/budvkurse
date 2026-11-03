@@ -7,6 +7,11 @@ async def update_profile(db, user, data):
     if changes.get('max_contact_url') and user.role not in ('organizer', 'admin'):
         from core.errors import AppError
         raise AppError(403, 'Контакт для участников указывает организатор')
+    if user.role == 'organizer':
+        if changes.get('grade') is not None or changes.get('school_id') is not None:
+            from core.errors import AppError
+            raise AppError(422, 'Класс и школа указываются в профиле ученика, не организатора')
+        changes.update(grade=None, school_id=None)
     city_id = changes.get("city_id", user.city_id)
     school_id = changes.get("school_id", user.school_id)
     await check_location(db, city_id, school_id)

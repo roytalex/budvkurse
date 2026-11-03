@@ -10,7 +10,6 @@ from urllib.request import Request, urlopen
 from weakref import WeakValueDictionary
 from core.config import get_settings
 from core.errors import AppError
-from core.frontend_delivery import frontend_version
 from services.max_conversation import OPENING_HELP, conversation
 
 API_URL = 'https://platform-api2.max.ru'
@@ -136,15 +135,9 @@ def recipient(update):
     return sender.get('user_id')
 
 
-def browser_url(section='feed'):
-    return get_settings().public_base_url.rstrip('/') + '/?v=' + frontend_version() + '#' + section
-
-
 def welcome(username):
     buttons = [[{'type':'open_app', 'text':'Открыть приложение', 'web_app':username, 'payload':'feed'}]]
     public_url = get_settings().public_base_url
-    if public_url and public_url.startswith('https://'):
-        buttons.append([{'type':'link', 'text':'Открыть сайт в браузере', 'url':browser_url('feed')}])
     note = '\n\n' + OPENING_HELP if '.ngrok' in public_url else ''
     return {'text':'Привет! Я помощник «Будь в курсе». Помогу найти событие, собрать команду и разобраться с участием.\n\nНапиши, например: «хочу на олимпиаду», «покажи карту», «мои достижения» или «как записаться». Можно общаться обычными фразами.\n\nНапоминания подключаются в профиле сайта. Проверить связь: /status. Отключить уведомления: /stop.' + note,
             'attachments':[{'type':'inline_keyboard', 'payload':{'buttons':buttons}}]}
@@ -156,8 +149,6 @@ def conversation_body(text):
     body['text'] = answer
     buttons = body['attachments'][0]['payload']['buttons']
     buttons[0][0].update(text=label, payload=section)
-    if len(buttons) > 1:
-        buttons[1][0]['url'] = browser_url(section)
     return body
 
 
@@ -223,8 +214,6 @@ async def process(update):
                 body['text'] = await max_notifications.bot_summary(user_id)
                 buttons = body['attachments'][0]['payload']['buttons']
                 buttons[0][0].update(text='Мои напоминания', payload='reminders')
-                if len(buttons) > 1:
-                    buttons[1][0]['url'] = browser_url('reminders')
             if kind == 'message_created' and command not in ('/start', '/connect', '/stop', '/reminders', '/status'):
                 body = conversation_body(text)
         except AppError as error:

@@ -30,7 +30,7 @@ window.LocationSearch=(()=>{
     if(!state.me||!dialog.open||context!==active)return;
     if(form?.isConnected){
       form.elements.city_id.innerHTML=options(state.cities,selection.city.id,'Выбери населённый пункт');
-      form.elements.school_id.innerHTML=schoolOptions(selection.city.id,selection.school?.id,'Без школы');
+      if(form.elements.school_id)form.elements.school_id.innerHTML=schoolOptions(selection.city.id,selection.school?.id,'Без школы');
       if(form.id==='event-form'){
         if(selection.school)EventMap.applySchool(selection.school);
         else EventMap.pickerCity(selection.city.id);
