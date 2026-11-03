@@ -49,23 +49,24 @@ def main():
     missing = [name.upper() for name in fields if not getattr(settings, name)]
     if missing:
         raise SystemExit('Заполни в beckend/.env: ' + ', '.join(missing))
+    webhook_base = settings.max_webhook_base_url or settings.public_base_url
     print('Ссылка мини-приложения: ' + settings.public_base_url + '/?max=1')
-    print('Webhook: ' + settings.public_base_url + '/api/v1/integrations/max/webhook')
+    print('Webhook: ' + webhook_base + '/api/v1/integrations/max/webhook')
     if not args.register:
         print('Настройки заполнены. Для подключения после размещения сайта: python -m scripts.setup_max --register')
         return
     headers = {'Accept': 'application/json'}
-    host = urlsplit(settings.public_base_url).hostname or ''
+    host = urlsplit(webhook_base).hostname or ''
     if host.endswith(('.ngrok-free.dev', '.ngrok-free.app', '.ngrok.app')):
         headers['ngrok-skip-browser-warning'] = 'api-health-check'
-    request = Request(settings.public_base_url + '/health', headers=headers)
+    request = Request(webhook_base + '/health', headers=headers)
     with urlopen(request, timeout=10) as response:
         if response.status != 200 or json.load(response).get('status') != 'ok':
             raise SystemExit('Публичный сайт ещё не готов')
     bot = api_call('/me')
     if str(bot.get('username', '')).lower() != settings.max_bot_username.lower():
         raise SystemExit('Имя бота не совпадает с MAX_BOT_USERNAME. Проверь настройки.')
-    result = api_call('/subscriptions', {'url': settings.public_base_url + '/api/v1/integrations/max/webhook',
+    result = api_call('/subscriptions', {'url': webhook_base + '/api/v1/integrations/max/webhook',
                                        'update_types': ['bot_started', 'bot_stopped', 'dialog_removed', 'message_created', 'message_callback'],
                                        'secret': settings.max_webhook_secret})
     if not result.get('success'):

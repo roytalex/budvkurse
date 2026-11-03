@@ -3,15 +3,15 @@ const assert=require('node:assert/strict');
 const vm=require('node:vm');
 const fs=require('node:fs');
 
-function app({inside=true,payload='calendar'}={}){
+function app({inside=true,payload='calendar',launch='',deferred=false}={}){
   const events={},listeners={},actions=[];
   const root={dataset:{},style:{setProperty(){}}};
   const main={dataset:{view:'feed'}},nav={open:false,close(){this.open=false;actions.push('nav-close');}},modal={open:false};
   const bridge=inside?{initData:'not-used-for-authentication',initDataUnsafe:{user:{id:999,role:'admin'},start_param:payload},ready(){actions.push('ready');},BackButton:{show(){},hide(){},onClick(fn){events.back=fn;}},openLink(url){actions.push(url);},downloadFile(url,name){actions.push({url,name});return Promise.resolve({status:'downloading'});}}:null;
-  const window={WebApp:bridge,addEventListener:(name,fn)=>events[name]=fn,innerHeight:800};
-  const document={documentElement:root,body:{},head:{append(){actions.push('sdk');}},addEventListener:(name,fn)=>listeners[name]=fn,
+  const window={WebApp:deferred?null:bridge,addEventListener:(name,fn)=>events[name]=fn,innerHeight:800};
+  const document={documentElement:root,body:{},head:{append(script){actions.push('sdk');events.sdkLoad=()=>{window.WebApp=bridge;script.onload();};}},createElement:()=>({}),addEventListener:(name,fn)=>listeners[name]=fn,
     querySelector:s=>s==='#main'?main:s==='#nav-dialog'?nav:s==='#modal'?modal:null};
-  const context={window,document,URL,URLSearchParams,setTimeout:()=>0,location:{search:inside?'?max=1':'',hash:'',origin:'https://school.example',href:'https://school.example/'},
+  const context={window,document,URL,URLSearchParams,setTimeout:()=>0,location:{search:inside?'?max=1':launch?'?launch='+encodeURIComponent(launch):'',hash:'',origin:'https://school.example',href:'https://school.example/'},
     MutationObserver:class{observe(){}},navigate:async x=>actions.push('view:'+x),openEvent:async x=>actions.push('event:'+x),closeModal:()=>{modal.open=false;actions.push('modal-close');},toast(){}};
   vm.runInNewContext(fs.readFileSync(require.resolve('../max-shell.js'),'utf8'),context);
   return {api:window.MaxShell,events,listeners,actions,root,nav,modal,main};
@@ -33,4 +33,24 @@ test('Normal browser does not load MAX or alter its navigation',()=>{
 test('Native download rejects non-HTTPS, external host and arbitrary local routes',async()=>{
   const a=app();for(const url of ['http://school.example/api/v1/exports/certificate','https://evil.example/api/v1/exports/certificate','https://school.example/api/v1/me'])await assert.rejects(a.api.download(url,'file.html'));
   await a.api.download('https://school.example/api/v1/exports/certificate?token=test','certificate.html');assert.equal(a.actions.at(-1).name,'certificate.html');
+});
+
+test('Backup site links retain event and section destination after login without loading MAX',async()=>{
+  for(const [launch,expected] of [['calendar','view:calendar'],['event_123','event:123']]){
+    const a=app({inside:false,launch});assert.deepEqual(a.actions,[]);
+    a.events['app-session-ready']();await Promise.resolve();
+    assert.deepEqual(a.actions,[expected]);
+    a.events['app-session-ready']();await Promise.resolve();assert.deepEqual(a.actions,[expected]);
+  }
+});
+test('Backup launch rejects arbitrary URLs and privileged routes',async()=>{
+  for(const launch of ['https://evil.example','admin','javascript:alert(1)','event_-2']){
+    const a=app({inside:false,launch});a.events['app-session-ready']();await Promise.resolve();assert.deepEqual(a.actions,[]);
+  }
+});
+
+test('Slow MAX SDK can still apply its launch target after account readiness',async()=>{
+  const a=app({inside:true,deferred:true,payload:'event_42'});
+  a.events['app-session-ready']();await Promise.resolve();assert.ok(!a.actions.includes('event:42'));
+  a.events.sdkLoad();await Promise.resolve();assert.ok(a.actions.includes('event:42'));
 });

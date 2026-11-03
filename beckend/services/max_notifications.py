@@ -97,8 +97,7 @@ def reminder_message(event):
     body['text'] = f'Напоминание: {event.title}\nНачало: {when} ({event.timezone}).\n' + (
         'Формат: онлайн.' if event.format == 'online' else f'Место: {event.place_name or ""}. {event.address or ""}')
     body['text'] += '\nОткрой карточку, чтобы проверить детали. Отключить уведомления: /stop.'
-    button = body['attachments'][0]['payload']['buttons'][0][0]
-    button.update(text='Открыть событие', payload=f'event_{event.id}')
+    max_bot.set_launch(body, f'event_{event.id}', 'Открыть событие')
     return body
 
 

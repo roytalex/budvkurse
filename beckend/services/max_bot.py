@@ -79,6 +79,7 @@ async def send_message(user_id, body, callback_id=None):
 def register_commands():
     commands = [
         {'name':'start', 'description':'Открыть «Будь в курсе»'},
+        {'name':'links', 'description':'Выбрать адрес сайта: ngrok или CloudPub'},
         {'name':'help', 'description':'Что умеет бот и как участвовать'},
         {'name':'events', 'description':'Найти мероприятие'},
         {'name':'calendar', 'description':'Открыть календарь событий'},
@@ -97,7 +98,7 @@ def register_commands():
 
 def command_name(text):
     phrase = ' '.join(text.strip().lower().rstrip('?!.,').split())
-    aliases = {'мои напоминания': '/reminders', 'покажи напоминания': '/reminders', 'что запланировано': '/reminders', 'статус': '/status', 'проверь подключение': '/status'}
+    aliases = {'ссылки': '/links', 'выбрать адрес': '/links', 'cloudpub': '/links', 'резервный адрес': '/links', 'другая ссылка': '/links', 'мои напоминания': '/reminders', 'покажи напоминания': '/reminders', 'что запланировано': '/reminders', 'статус': '/status', 'проверь подключение': '/status'}
     if phrase in aliases:
         return aliases[phrase]
     parts = text.strip().lower().split(maxsplit=1)
@@ -108,7 +109,7 @@ def command_name(text):
         return None
     if command == 'старт':
         command = '/start'
-    return command if command in ('/start', '/help', '/stop', '/reminders', '/status', '/connect', '/events', '/calendar', '/map', '/teams', '/achievements') else None
+    return command if command in ('/start', '/links', '/help', '/stop', '/reminders', '/status', '/connect', '/events', '/calendar', '/map', '/teams', '/achievements') else None
 
 
 def recipient(update):
@@ -135,10 +136,36 @@ def recipient(update):
     return sender.get('user_id')
 
 
+def launch_buttons(username, section='feed', label='Открыть приложение'):
+    settings = get_settings()
+    buttons = [[{'type': 'open_app', 'text': label, 'web_app': username, 'payload': section}]]
+    if settings.cloudpub_base_url:
+        for name, base in [('CloudPub — сайт', settings.cloudpub_base_url), ('ngrok — сайт', settings.public_base_url)]:
+            if base:
+                buttons.append([{'type': 'link', 'text': name, 'url': base + '/?' + urlencode({'launch': section})}])
+    return buttons
+
+
+def set_launch(body, section, label):
+    body['attachments'] = [{'type': 'inline_keyboard', 'payload': {'buttons': launch_buttons(get_settings().max_bot_username, section, label)}}]
+    return body
+
+
+def links_body():
+    body = welcome(get_settings().max_bot_username)
+    if get_settings().cloudpub_base_url:
+        body['text'] = 'Выбери, как открыть «Будь в курсе».\n\n«Открыть приложение» — мини-приложение внутри MAX по адресу, настроенному организатором.\n«CloudPub — сайт» — адрес через российский сервис.\n«ngrok — сайт» — второй адрес сайта.\n\nДанные общие, но на другом адресе может потребоваться повторный вход. Если один адрес недоступен, попробуй другой. Оба зависят от работающего сервера проекта.'
+    else:
+        body['text'] = 'Мини-приложение доступно по кнопке ниже. Резервный адрес CloudPub пока не подключён.'
+    return body
+
+
 def welcome(username):
-    buttons = [[{'type':'open_app', 'text':'Открыть приложение', 'web_app':username, 'payload':'feed'}]]
+    buttons = launch_buttons(username)
     public_url = get_settings().public_base_url
     note = '\n\n' + OPENING_HELP if '.ngrok' in public_url else ''
+    if get_settings().cloudpub_base_url:
+        note += '\n\nМожно выбрать адрес сайта кнопками CloudPub или ngrok ниже. Меню адресов: /links.'
     return {'text':'Привет! Я помощник «Будь в курсе». Помогу найти событие, собрать команду и разобраться с участием.\n\nНапиши, например: «хочу на олимпиаду», «покажи карту», «мои достижения» или «как записаться». Можно общаться обычными фразами.\n\nНапоминания подключаются в профиле сайта. Проверить связь: /status. Отключить уведомления: /stop.' + note,
             'attachments':[{'type':'inline_keyboard', 'payload':{'buttons':buttons}}]}
 
@@ -147,9 +174,7 @@ def conversation_body(text):
     answer, section, label = conversation(text)
     body = welcome(get_settings().max_bot_username)
     body['text'] = answer
-    buttons = body['attachments'][0]['payload']['buttons']
-    buttons[0][0].update(text=label, payload=section)
-    return body
+    return set_launch(body, section, label)
 
 
 
@@ -207,14 +232,15 @@ async def process(update):
                 body = await max_pairing.prompt(payload[8:])
             elif command == '/start' and len(text.split(maxsplit=1)) > 1 and text.split(maxsplit=1)[1].startswith('connect_'):
                 body = await max_pairing.prompt(text.split(maxsplit=1)[1][8:])
+            elif command == '/links':
+                body = links_body()
             elif command == '/stop':
                 await max_notifications.stop_for_max(user_id)
                 body['text'] = 'Напоминания MAX отключены. Твои записи на события сохранены. Включить уведомления снова можно в профиле сайта через подтверждение подключения.'
             elif command in ('/reminders', '/status'):
                 body['text'] = await max_notifications.bot_summary(user_id)
-                buttons = body['attachments'][0]['payload']['buttons']
-                buttons[0][0].update(text='Мои напоминания', payload='reminders')
-            if kind == 'message_created' and command not in ('/start', '/connect', '/stop', '/reminders', '/status'):
+                set_launch(body, 'reminders', 'Мои напоминания')
+            if kind == 'message_created' and command not in ('/start', '/links', '/connect', '/stop', '/reminders', '/status'):
                 body = conversation_body(text)
         except AppError as error:
             if error.status >= 500:

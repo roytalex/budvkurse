@@ -23,7 +23,7 @@ def test_commands():
 def test_menu_method_and_response():
     def response(path, body, *, method):
         assert path == '/me/commands' and method == 'PATCH'
-        assert {c['name'] for c in body['commands']} == {'start', 'help', 'stop', 'reminders', 'status', 'connect', 'events', 'calendar', 'map', 'teams', 'achievements'}
+        assert {c['name'] for c in body['commands']} == {'start', 'links', 'help', 'stop', 'reminders', 'status', 'connect', 'events', 'calendar', 'map', 'teams', 'achievements'}
         return body
     with patch.object(max_bot, 'api_call', side_effect=response):
         max_bot.register_commands()
