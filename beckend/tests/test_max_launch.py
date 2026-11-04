@@ -58,7 +58,7 @@ def test_miniapp_launch_and_deduplication():
                 rows = send.call_args.args[1]['attachments'][0]['payload']['buttons']
                 assert rows[0][0]['type'] == 'open_app'
                 assert rows[0][0]['payload'] == target
-                assert len(rows) == 1
-                assert all(button['type'] == 'open_app' for row in rows for button in row)
+                assert len(rows) == 2
+                assert rows[1][0]['url'] == 'https://example.org/?launch=' + target
     with patch.object(get_settings(), 'public_base_url', ''):
         assert len(max_bot.welcome('school_bot')['attachments'][0]['payload']['buttons']) == 1

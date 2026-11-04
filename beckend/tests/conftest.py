@@ -9,8 +9,6 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
 os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///:memory:"
 os.environ["JWT_SECRET"] = "test-only-secret-not-for-real-deployment-123456"
-os.environ["CLOUDPUB_BASE_URL"] = ""
-os.environ["MAX_WEBHOOK_BASE_URL"] = ""
 from core.config import get_settings
 from db.db import Base, get_db, get_session_factory
 import db.models

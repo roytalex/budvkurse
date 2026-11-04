@@ -79,7 +79,7 @@ async def send_message(user_id, body, callback_id=None):
 def register_commands():
     commands = [
         {'name':'start', 'description':'Открыть «Будь в курсе»'},
-        {'name':'links', 'description':'Выбрать адрес сайта: ngrok или CloudPub'},
+        {'name':'links', 'description':'Открыть сайт через CloudPub'},
         {'name':'help', 'description':'Что умеет бот и как участвовать'},
         {'name':'events', 'description':'Найти мероприятие'},
         {'name':'calendar', 'description':'Открыть календарь событий'},
@@ -139,10 +139,8 @@ def recipient(update):
 def launch_buttons(username, section='feed', label='Открыть приложение'):
     settings = get_settings()
     buttons = [[{'type': 'open_app', 'text': label, 'web_app': username, 'payload': section}]]
-    if settings.cloudpub_base_url:
-        for name, base in [('CloudPub — сайт', settings.cloudpub_base_url), ('ngrok — сайт', settings.public_base_url)]:
-            if base:
-                buttons.append([{'type': 'link', 'text': name, 'url': base + '/?' + urlencode({'launch': section})}])
+    if settings.public_base_url:
+        buttons.append([{'type': 'link', 'text': 'CloudPub — сайт', 'url': settings.public_base_url + '/?' + urlencode({'launch': section})}])
     return buttons
 
 
@@ -153,19 +151,13 @@ def set_launch(body, section, label):
 
 def links_body():
     body = welcome(get_settings().max_bot_username)
-    if get_settings().cloudpub_base_url:
-        body['text'] = 'Выбери, как открыть «Будь в курсе».\n\n«Открыть приложение» — мини-приложение внутри MAX по адресу, настроенному организатором.\n«CloudPub — сайт» — адрес через российский сервис.\n«ngrok — сайт» — второй адрес сайта.\n\nДанные общие, но на другом адресе может потребоваться повторный вход. Если один адрес недоступен, попробуй другой. Оба зависят от работающего сервера проекта.'
-    else:
-        body['text'] = 'Мини-приложение доступно по кнопке ниже. Резервный адрес CloudPub пока не подключён.'
+    body['text'] = OPENING_HELP if get_settings().public_base_url else 'Нажми «Открыть приложение».'
     return body
 
 
 def welcome(username):
     buttons = launch_buttons(username)
-    public_url = get_settings().public_base_url
-    note = '\n\n' + OPENING_HELP if '.ngrok' in public_url else ''
-    if get_settings().cloudpub_base_url:
-        note += '\n\nМожно выбрать адрес сайта кнопками CloudPub или ngrok ниже. Меню адресов: /links.'
+    note = '\n\nСсылка на сайт: /links.' if get_settings().public_base_url else ''
     return {'text':'Привет! Я помощник «Будь в курсе». Помогу найти событие, собрать команду и разобраться с участием.\n\nНапиши, например: «хочу на олимпиаду», «покажи карту», «мои достижения» или «как записаться». Можно общаться обычными фразами.\n\nНапоминания подключаются в профиле сайта. Проверить связь: /status. Отключить уведомления: /stop.' + note,
             'attachments':[{'type':'inline_keyboard', 'payload':{'buttons':buttons}}]}
 

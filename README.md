@@ -74,8 +74,4 @@ createdb -U postgres budvkurse_app
 - [Размещение по HTTPS](deploy/README.md)
 
 
-Инструкция для участников и проверяющих, включая экран ngrok: [Как открыть сайт и мини-приложение](HOW-TO-OPEN.md).
-
-## Docker: CloudPub и ngrok
-
-Оба адреса подключены к одной базе. Запуск — `start-docker.cmd`, выбор в MAX — `/links`. Настройка, постоянные адреса и ограничения: [CLOUDPUB.md](CLOUDPUB.md).
+Инструкции: [как открыть проект](HOW-TO-OPEN.md) и [запуск Docker с CloudPub](CLOUDPUB.md).
