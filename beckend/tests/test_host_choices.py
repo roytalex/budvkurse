@@ -12,8 +12,7 @@ from services import max_bot, max_notifications
 @pytest.fixture
 def hosts(monkeypatch):
     settings = get_settings()
-    monkeypatch.setattr(settings, 'cloudpub_base_url', 'https://backup.cloudpub.ru')
-    monkeypatch.setattr(settings, 'public_base_url', 'https://example.ngrok-free.dev')
+    monkeypatch.setattr(settings, 'public_base_url', 'https://example.cloudpub.ru')
     monkeypatch.setattr(settings, 'max_bot_username', 'school_bot')
     return settings
 
@@ -21,8 +20,8 @@ def hosts(monkeypatch):
 def assert_routes(body, target):
     rows = body['attachments'][0]['payload']['buttons']
     assert rows[0][0] == {'type': 'open_app', 'text': rows[0][0]['text'], 'web_app': 'school_bot', 'payload': target}
-    assert len(rows) == 3
-    for row, host in zip(rows[1:], ['backup.cloudpub.ru', 'example.ngrok-free.dev']):
+    assert len(rows) == 2
+    for row, host in zip(rows[1:], ['example.cloudpub.ru']):
         assert len(row) == 1 and row[0]['type'] == 'link'
         url = urlsplit(row[0]['url'])
         assert url.scheme == 'https' and url.hostname == host
@@ -36,7 +35,7 @@ def test_all_routes_and_event_reminder(hosts):
         assert_routes(max_bot.conversation_body(phrase), target)
     event = SimpleNamespace(id=123, title='Test event', starts_at=datetime(2030, 1, 1, tzinfo=timezone.utc), timezone='Europe/Moscow', format='online')
     assert_routes(max_notifications.reminder_message(event), 'event_123')
-    assert 'Данные общие' in max_bot.links_body()['text']
+    assert 'CloudPub' in max_bot.links_body()['text']
 
 
 @pytest.mark.asyncio
@@ -52,18 +51,12 @@ async def test_provider_menu_and_reminders_dispatch(hosts, text, target):
 
 
 def test_no_broken_placeholder_when_backup_not_configured(hosts, monkeypatch):
-    monkeypatch.setattr(hosts, 'cloudpub_base_url', '')
+    monkeypatch.setattr(hosts, 'public_base_url', '')
     assert len(max_bot.welcome('school_bot')['attachments'][0]['payload']['buttons']) == 1
-    assert 'пока не подключён' in max_bot.links_body()['text']
+    assert 'Открыть приложение' in max_bot.links_body()['text']
 
 
 @pytest.mark.parametrize('url', ['http://backup.cloudpub.ru', 'https://user:secret@backup.cloudpub.ru', 'https://backup.cloudpub.ru/path', 'https://backup.cloudpub.ru/?token=secret', 'https://backup.cloudpub.ru/#fragment'])
 def test_backup_url_rejects_credentials_and_non_origin_addresses(url):
     with pytest.raises(ValidationError):
-        Settings(_env_file=None, database_url='sqlite+aiosqlite:///:memory:', jwt_secret='test-only-secret-not-for-deployment-12345', cloudpub_base_url=url)
-
-
-def test_optional_webhook_origin_is_separate_from_miniapp():
-    settings = Settings(_env_file=None, database_url='sqlite+aiosqlite:///:memory:', jwt_secret='test-only-secret-not-for-deployment-12345', public_base_url='https://example.ngrok-free.dev', max_webhook_base_url='https://backup.cloudpub.ru/')
-    assert settings.max_webhook_base_url == 'https://backup.cloudpub.ru'
-    assert settings.public_base_url == 'https://example.ngrok-free.dev'
+        Settings(_env_file=None, database_url='sqlite+aiosqlite:///:memory:', jwt_secret='test-only-secret-not-for-deployment-12345', public_base_url=url)

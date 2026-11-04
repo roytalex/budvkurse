@@ -40,7 +40,7 @@ async def test_natural_text_delivered_once_with_correct_links():
         body = send.call_args.args[1]
         rows = body['attachments'][0]['payload']['buttons']
         assert rows[0][0]['payload'] == 'achievements'
-        assert len(rows) == 1
+        assert rows[1][0]['url'] == 'https://example.org/?launch=achievements'
         assert 'подтвержд' in body['text']
 
 
@@ -54,11 +54,6 @@ def test_conversation_only_answers_humans_in_private_dialogs(chat_type,is_bot,te
     assert max_bot.recipient(update) == expected
 
 
-def test_opening_instructions_explain_ngrok():
-    for phrase in ('как открыть сайт', 'что за ngrok', 'почему написано бесплатно', 'Visit Site'):
-        answer, section, label = conversation(phrase)
-        assert 'Visit Site' in answer
-        assert 'imply-suitable-safari.ngrok-free.dev' in answer
-        assert section == 'feed'
-    with patch.object(get_settings(), 'public_base_url', 'https://imply-suitable-safari.ngrok-free.dev'):
-        assert 'Visit Site' in max_bot.welcome('school_bot')['text']
+def test_opening_instructions():
+    answer, section, _ = conversation('как открыть сайт')
+    assert 'CloudPub' in answer and section == 'feed'

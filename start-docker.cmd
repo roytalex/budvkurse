@@ -9,27 +9,24 @@ if errorlevel 1 (
   pause
   exit /b 1
 )
-if not exist ".env.ngrok" (
-  echo Missing .env.ngrok. Read DOCKER-NGROK.md.
+if not exist ".env.cloudpub" (
+  echo Missing .env.cloudpub. Read CLOUDPUB.md.
   pause
   exit /b 1
 )
-set "EXTRA_PROFILE="
-findstr /r "^CLOUDPUB_TOKEN=." ".env.ngrok" >nul 2>nul
-if not errorlevel 1 set "EXTRA_PROFILE=--profile cloudpub"
-docker compose --env-file .env.ngrok -f compose.ngrok.yaml %EXTRA_PROFILE% config --quiet
+docker compose --env-file .env.cloudpub -f compose.cloudpub.yaml config --quiet
 if errorlevel 1 (
   pause
   exit /b 1
 )
-docker compose --env-file .env.ngrok -f compose.ngrok.yaml %EXTRA_PROFILE% up -d --build --wait --wait-timeout 180
+docker compose --env-file .env.cloudpub -f compose.cloudpub.yaml up -d --build --wait --wait-timeout 180
 if errorlevel 1 (
   echo Startup is incomplete. Check Docker Desktop and the container logs.
   pause
   exit /b 1
 )
-docker compose --env-file .env.ngrok -f compose.ngrok.yaml ps
+docker compose --env-file .env.cloudpub -f compose.cloudpub.yaml ps
 echo Local site: http://127.0.0.1:4174/
-echo Check the public URL and MAX webhook using the instructions in DOCKER-NGROK.md.
+echo Check the public URL and MAX webhook using the instructions in CLOUDPUB.md.
 echo Containers run in the background. Closing this window does not stop them.
 pause

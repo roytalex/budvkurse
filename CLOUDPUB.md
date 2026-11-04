@@ -1,53 +1,20 @@
-# Два постоянных адреса в Docker
+# Запуск через Docker и CloudPub
 
-Российский адрес: https://kindly-competent-polecat.cloudpub.ru/
+Адрес сайта: https://kindly-competent-polecat.cloudpub.ru/. Все мероприятия, аккаунты и напоминания используют одну базу. Компьютер должен быть включён, подключён к интернету и не находиться в спящем режиме.
 
-Адрес ngrok: https://imply-suitable-safari.ngrok-free.dev/
-
-Оба адреса ведут в один контейнер приложения и одну базу PostgreSQL. Изменения мероприятий, аккаунты, достижения и напоминания общие. На другом домене нужно войти заново: токены сессии не передаются через ссылки.
-
-## Запуск
-
-Открой Docker Desktop, дождись запуска движка и запусти `start-docker.cmd` из папки проекта. Если в `.env.ngrok` заполнен `CLOUDPUB_TOKEN`, скрипт автоматически включает профиль `cloudpub` вместе с ngrok.
-
-В терминале из корня проекта:
+Открой Docker Desktop и запусти `start-docker.cmd` в корне проекта. В терминале из этой папки:
 
 ```powershell
-docker compose --env-file .env.ngrok -f compose.ngrok.yaml --profile cloudpub up -d --build --wait
-docker compose --env-file .env.ngrok -f compose.ngrok.yaml --profile cloudpub ps
+docker compose --env-file .env.cloudpub -f compose.cloudpub.yaml up -d --build --wait
+docker compose --env-file .env.cloudpub -f compose.cloudpub.yaml ps
 ```
 
-Том `cloudpub-config` хранит идентификатор агента и выданный адрес. Сохраняй этот том при обновлении и переносе. Не удаляй публикацию в CloudPub и не выполняй `down -v`: это удаляет тома, в том числе базу. Удаление аккаунта/публикации или нарушение условий провайдера может лишить адреса.
+В локальном файле `.env.cloudpub` находятся PUBLIC_BASE_URL, CLOUDPUB_TOKEN, POSTGRES_PASSWORD, JWT_SECRET и настройки MAX. Ключи исключены из Git. Не удаляй тома database, uploads и cloudpub-config: в них находятся данные и настройки постоянного адреса.
 
-## Ключи
+Проверка: https://kindly-competent-polecat.cloudpub.ru/health должна вернуть статус ok. Для подключения webhook и меню на новом развёртывании выполни:
 
-В `.env.ngrok`:
-
-```text
-CLOUDPUB_TOKEN=<твой ключ из кабинета CloudPub>
-CLOUDPUB_BASE_URL=https://kindly-competent-polecat.cloudpub.ru
-MAX_WEBHOOK_BASE_URL=https://kindly-competent-polecat.cloudpub.ru
-PUBLIC_BASE_URL=https://imply-suitable-safari.ngrok-free.dev
+```powershell
+docker compose --env-file .env.cloudpub -f compose.cloudpub.yaml exec app python -m scripts.setup_max --register
 ```
 
-Ключи исключены из Git и Docker-образа. Не копируй их в сообщения или скриншоты. `PUBLIC_BASE_URL` остаётся адресом, который организатор уже прикрепил к мини-приложению. `MAX_WEBHOOK_BASE_URL` задаёт независимый адрес доставки событий бота.
-
-## Кнопки бота
-
-Отправь `/start` или `/links`; также подойдут «ссылки», «cloudpub» и «другая ссылка».
-
-- «Открыть приложение» открывает настоящее мини-приложение MAX по адресу, заданному организатором.
-- «CloudPub — сайт» открывает сайт по российскому адресу.
-- «ngrok — сайт» открывает сайт по адресу ngrok.
-
-Ссылки из ответов и напоминаний сохраняют нужный раздел или мероприятие после входа. Старые сообщения бота сами не обновляются: отправь новую команду.
-
-MAX хранит один URL мини-приложения. Чтобы встроенная кнопка открывала российский адрес, попроси организатора заменить URL на `https://kindly-competent-polecat.cloudpub.ru/?max=1`. Выбор двух обычных ссылок не меняет эту настройку и не превращает каждую ссылку в отдельное мини-приложение.
-
-## Доступность
-
-CloudPub сообщает о размещении серверов в России. Проверка с этого ПК не гарантирует доступность у каждого мобильного оператора; проверь адрес на телефоне с выключенным VPN.
-
-Оба провайдера здесь работают как туннели к Docker на твоём ПК. ПК должен быть включён, не спать, иметь интернет и работающий Docker. Для работы при выключенном ПК нужен отдельный облачный сервер. Две ссылки защищают от проблем одного туннеля, но не от остановки общего приложения или компьютера.
-
-Документация: https://cloudpub.ru/docs/docker/ и https://dev.max.ru/docs/webapps/introduction
+URL для настроек мини-приложения у организатора MAX: https://kindly-competent-polecat.cloudpub.ru/?max=1.

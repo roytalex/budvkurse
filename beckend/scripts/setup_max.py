@@ -3,7 +3,6 @@ import json
 import re
 from getpass import getpass
 from urllib.request import Request, urlopen
-from urllib.parse import urlsplit
 from core.config import get_settings
 from core.errors import AppError
 from services.max_bot import api_call, register_commands
@@ -49,16 +48,13 @@ def main():
     missing = [name.upper() for name in fields if not getattr(settings, name)]
     if missing:
         raise SystemExit('Заполни в beckend/.env: ' + ', '.join(missing))
-    webhook_base = settings.max_webhook_base_url or settings.public_base_url
+    webhook_base = settings.public_base_url
     print('Ссылка мини-приложения: ' + settings.public_base_url + '/?max=1')
     print('Webhook: ' + webhook_base + '/api/v1/integrations/max/webhook')
     if not args.register:
         print('Настройки заполнены. Для подключения после размещения сайта: python -m scripts.setup_max --register')
         return
     headers = {'Accept': 'application/json'}
-    host = urlsplit(webhook_base).hostname or ''
-    if host.endswith(('.ngrok-free.dev', '.ngrok-free.app', '.ngrok.app')):
-        headers['ngrok-skip-browser-warning'] = 'api-health-check'
     request = Request(webhook_base + '/health', headers=headers)
     with urlopen(request, timeout=10) as response:
         if response.status != 200 or json.load(response).get('status') != 'ok':
