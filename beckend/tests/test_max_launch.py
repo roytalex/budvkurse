@@ -23,7 +23,7 @@ def test_commands():
 def test_menu_method_and_response():
     def response(path, body, *, method):
         assert path == '/me/commands' and method == 'PATCH'
-        assert {c['name'] for c in body['commands']} == {'start', 'links', 'help', 'stop', 'reminders', 'status', 'connect', 'events', 'calendar', 'map', 'teams', 'achievements'}
+        assert {c['name'] for c in body['commands']} == {'start', 'guide', 'help', 'stop', 'reminders', 'status', 'connect', 'events', 'calendar', 'map', 'teams', 'achievements'}
         return body
     with patch.object(max_bot, 'api_call', side_effect=response):
         max_bot.register_commands()
@@ -58,7 +58,7 @@ def test_miniapp_launch_and_deduplication():
                 rows = send.call_args.args[1]['attachments'][0]['payload']['buttons']
                 assert rows[0][0]['type'] == 'open_app'
                 assert rows[0][0]['payload'] == target
-                assert len(rows) == 2
-                assert rows[1][0]['url'] == 'https://example.org/?launch=' + target
+                assert len(rows) == 1
+                assert all(button['type'] == 'open_app' for row in rows for button in row)
     with patch.object(get_settings(), 'public_base_url', ''):
         assert len(max_bot.welcome('school_bot')['attachments'][0]['payload']['buttons']) == 1
