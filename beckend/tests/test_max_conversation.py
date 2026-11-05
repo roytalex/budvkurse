@@ -40,7 +40,7 @@ async def test_natural_text_delivered_once_with_correct_links():
         body = send.call_args.args[1]
         rows = body['attachments'][0]['payload']['buttons']
         assert rows[0][0]['payload'] == 'achievements'
-        assert rows[1][0]['url'] == 'https://example.org/?launch=achievements'
+        assert len(rows) == 1
         assert 'подтвержд' in body['text']
 
 
@@ -56,4 +56,4 @@ def test_conversation_only_answers_humans_in_private_dialogs(chat_type,is_bot,te
 
 def test_opening_instructions():
     answer, section, _ = conversation('как открыть сайт')
-    assert 'CloudPub' in answer and section == 'feed'
+    assert 'внутри MAX' in answer and section == 'feed'

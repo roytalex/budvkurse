@@ -10,7 +10,7 @@ from urllib.request import Request, urlopen
 from weakref import WeakValueDictionary
 from core.config import get_settings
 from core.errors import AppError
-from services.max_conversation import OPENING_HELP, conversation
+from services.max_conversation import conversation
 
 API_URL = 'https://platform-api2.max.ru'
 completed = OrderedDict()
@@ -79,7 +79,7 @@ async def send_message(user_id, body, callback_id=None):
 def register_commands():
     commands = [
         {'name':'start', 'description':'Открыть «Будь в курсе»'},
-        {'name':'links', 'description':'Открыть сайт через CloudPub'},
+        {'name':'guide', 'description':'Инструкция ученику и организатору'},
         {'name':'help', 'description':'Что умеет бот и как участвовать'},
         {'name':'events', 'description':'Найти мероприятие'},
         {'name':'calendar', 'description':'Открыть календарь событий'},
@@ -88,7 +88,7 @@ def register_commands():
         {'name':'achievements', 'description':'Мои достижения и рейтинг'},
         {'name':'reminders', 'description':'Ближайшие напоминания'},
         {'name':'status', 'description':'Проверить подключение MAX'},
-        {'name':'connect', 'description':'Подключить аккаунт по коду с сайта'},
+        {'name':'connect', 'description':'Подключить аккаунт по коду из приложения'},
         {'name':'stop', 'description':'Отключить напоминания MAX'},
     ]
     result = api_call('/me/commands', {'commands': commands}, method='PATCH')
@@ -98,7 +98,7 @@ def register_commands():
 
 def command_name(text):
     phrase = ' '.join(text.strip().lower().rstrip('?!.,').split())
-    aliases = {'ссылки': '/links', 'выбрать адрес': '/links', 'cloudpub': '/links', 'резервный адрес': '/links', 'другая ссылка': '/links', 'мои напоминания': '/reminders', 'покажи напоминания': '/reminders', 'что запланировано': '/reminders', 'статус': '/status', 'проверь подключение': '/status'}
+    aliases = {'ссылки': '/start', 'открыть приложение': '/start', 'инструкция': '/guide', 'мои напоминания': '/reminders', 'покажи напоминания': '/reminders', 'что запланировано': '/reminders', 'статус': '/status', 'проверь подключение': '/status'}
     if phrase in aliases:
         return aliases[phrase]
     parts = text.strip().lower().split(maxsplit=1)
@@ -107,9 +107,11 @@ def command_name(text):
     command, separator, username = parts[0].partition('@')
     if separator and username != get_settings().max_bot_username.lower():
         return None
+    if command == '/links':
+        command = '/start'
     if command == 'старт':
         command = '/start'
-    return command if command in ('/start', '/links', '/help', '/stop', '/reminders', '/status', '/connect', '/events', '/calendar', '/map', '/teams', '/achievements') else None
+    return command if command in ('/start', '/links', '/guide', '/help', '/stop', '/reminders', '/status', '/connect', '/events', '/calendar', '/map', '/teams', '/achievements') else None
 
 
 def recipient(update):
@@ -137,10 +139,7 @@ def recipient(update):
 
 
 def launch_buttons(username, section='feed', label='Открыть приложение'):
-    settings = get_settings()
     buttons = [[{'type': 'open_app', 'text': label, 'web_app': username, 'payload': section}]]
-    if settings.public_base_url:
-        buttons.append([{'type': 'link', 'text': 'CloudPub — сайт', 'url': settings.public_base_url + '/?' + urlencode({'launch': section})}])
     return buttons
 
 
@@ -149,16 +148,10 @@ def set_launch(body, section, label):
     return body
 
 
-def links_body():
-    body = welcome(get_settings().max_bot_username)
-    body['text'] = OPENING_HELP if get_settings().public_base_url else 'Нажми «Открыть приложение».'
-    return body
-
-
 def welcome(username):
     buttons = launch_buttons(username)
-    note = '\n\nСсылка на сайт: /links.' if get_settings().public_base_url else ''
-    return {'text':'Привет! Я помощник «Будь в курсе». Помогу найти событие, собрать команду и разобраться с участием.\n\nНапиши, например: «хочу на олимпиаду», «покажи карту», «мои достижения» или «как записаться». Можно общаться обычными фразами.\n\nНапоминания подключаются в профиле сайта. Проверить связь: /status. Отключить уведомления: /stop.' + note,
+    note = '\n\nИнструкция: /guide. Нажми «Открыть приложение», чтобы начать.'
+    return {'text':'Привет! Я помощник «Будь в курсе». Помогу найти событие, собрать команду и разобраться с участием.\n\nНапиши, например: «хочу на олимпиаду», «покажи карту», «мои достижения» или «как записаться». Можно общаться обычными фразами.\n\nНапоминания подключаются в профиле приложения. Проверить связь: /status. Отключить уведомления: /stop.' + note,
             'attachments':[{'type':'inline_keyboard', 'payload':{'buttons':buttons}}]}
 
 
@@ -213,22 +206,20 @@ async def process(update):
                 callback = update['callback']
                 callback_id = callback['callback_id']
                 await max_pairing.confirm(callback['payload'][8:], user_id)
-                body['text'] = 'Готово! Напоминания MAX подключены. Вернись на сайт и нажми «Проверить подключение». Выбирай время в карточке мероприятия. Ближайшие планы: /reminders. Отключить: /stop.'
+                body['text'] = 'Готово! Напоминания MAX подключены. Вернись в приложение и нажми «Проверить подключение». Выбирай время в карточке мероприятия. Ближайшие планы: /reminders. Отключить: /stop.'
             elif command == '/connect':
                 parts = text.split(maxsplit=1)
                 if len(parts) < 2:
-                    body['text'] = 'Получи одноразовый код на сайте: профиль → «Напоминания в MAX» → «Подключить через бота». Затем отправь сюда команду /connect с этим кодом. Не пересылай код другим людям.'
+                    body['text'] = 'Получи одноразовый код в приложении: профиль → «Напоминания в MAX» → «Подключить через бота». Затем отправь сюда команду /connect с этим кодом. Не пересылай код другим людям.'
                 else:
                     body = await max_pairing.prompt(parts[1].strip())
             elif kind == 'bot_started' and payload.startswith('connect_'):
                 body = await max_pairing.prompt(payload[8:])
             elif command == '/start' and len(text.split(maxsplit=1)) > 1 and text.split(maxsplit=1)[1].startswith('connect_'):
                 body = await max_pairing.prompt(text.split(maxsplit=1)[1][8:])
-            elif command == '/links':
-                body = links_body()
             elif command == '/stop':
                 await max_notifications.stop_for_max(user_id)
-                body['text'] = 'Напоминания MAX отключены. Твои записи на события сохранены. Включить уведомления снова можно в профиле сайта через подтверждение подключения.'
+                body['text'] = 'Напоминания MAX отключены. Твои записи на события сохранены. Включить уведомления снова можно в профиле приложения через подтверждение подключения.'
             elif command in ('/reminders', '/status'):
                 body['text'] = await max_notifications.bot_summary(user_id)
                 set_launch(body, 'reminders', 'Мои напоминания')

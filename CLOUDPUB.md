@@ -18,3 +18,5 @@ docker compose --env-file .env.cloudpub -f compose.cloudpub.yaml exec app python
 ```
 
 URL для настроек мини-приложения у организатора MAX: https://kindly-competent-polecat.cloudpub.ru/?max=1.
+
+Организаторы подтвердили подключение этого адреса 5 ноября 2026. Бот открывает только мини-приложение. Инструкция пользователей: [HOW-TO-OPEN.md](HOW-TO-OPEN.md).
