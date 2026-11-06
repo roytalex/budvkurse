@@ -23,4 +23,5 @@ beckend/uploads/
 *.pid
 
 deploy/certs/*
-!deploy/certs/README.md
+
+*.tar.gz

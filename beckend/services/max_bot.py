@@ -50,7 +50,7 @@ def api_call(path, body=None, query=None, *, method=None):
             delay = 0
         raise MaxAPIError(f'HTTP {exc.code}: ' + details.get(exc.code, 'MAX временно недоступен. Повтори позже.'), exc.code, delay) from None
     except (URLError, TimeoutError, OSError):
-        raise AppError(502, 'Нет соединения с MAX API. Проверь сеть и доверенные сертификаты; настройка MAX_CA_BUNDLE описана в deploy/certs/README.md.') from None
+        raise AppError(502, 'Нет соединения с MAX API. Проверь сеть и доверенные сертификаты; настройка MAX_CA_BUNDLE описана в README.md.') from None
     except (ValueError, UnicodeError):
         raise AppError(502, 'MAX вернул ответ в неожиданном формате. Повтори позже.') from None
 
