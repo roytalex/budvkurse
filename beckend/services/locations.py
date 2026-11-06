@@ -11,6 +11,7 @@ import math
 import time
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
+from urllib.error import HTTPError, URLError
 import jwt
 from sqlalchemy import func, select, text
 from starlette.concurrency import run_in_threadpool
@@ -28,17 +29,23 @@ _last_call = 0.0
 def _fetch(params):
     url = get_settings().geocoder_url.rstrip('/') + '/?' + urlencode(params)
     request = Request(url, headers={'User-Agent':'Budvkurse/1.0 (school events application)', 'Accept':'application/json'})
-    try:
-        with urlopen(request, timeout=12) as response:
-            raw = response.read(2_000_001)
-        if len(raw) > 2_000_000:
-            raise ValueError('Response too large')
-        result = json.loads(raw)
-        if not isinstance(result.get('features'), list):
-            raise ValueError('Unexpected response')
-        return result['features']
-    except Exception as exc:
-        raise AppError(503, 'Поиск по России временно недоступен. Сохранённые варианты доступны; попробуй позже.') from exc
+    for attempt in range(2):
+        try:
+            with urlopen(request, timeout=6) as response:
+                raw = response.read(2_000_001)
+            if len(raw) > 2_000_000:
+                raise ValueError('Response too large')
+            result = json.loads(raw)
+            if not isinstance(result.get('features'), list):
+                raise ValueError('Unexpected response')
+            return result['features']
+        except (HTTPError, URLError, TimeoutError, OSError, ValueError) as exc:
+            retryable = not isinstance(exc, HTTPError) or exc.code in (502, 503, 504)
+            if attempt == 0 and retryable:
+                time.sleep(0.5)
+                continue
+            raise AppError(503, 'Внешний поиск школ и адресов временно недоступен. Выбери сохранённую школу ниже или повтори поиск. Организатор может добавить школу вручную.') from exc
+
 
 
 async def provider_search(params):

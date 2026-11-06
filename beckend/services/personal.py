@@ -50,6 +50,8 @@ async def personal_rows(db, rows, user):
 
 
 async def register(db, user, event_id):
+    if user.role == "organizer":
+        raise AppError(403, "Организатор не может записываться на мероприятия. Используй аккаунт ученика.")
 
 
     event = await accessible_event(db, event_id, user, lock=True)

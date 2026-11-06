@@ -96,3 +96,31 @@ async def test_manual_settlement_permissions_and_repeated_selection(api):
     assert first.status_code==200,first.text
     second=await client.post(P+'/locations/cities/manual',headers=owner,json={**body,'name':'НОВОЕ СЕЛО'})
     assert second.status_code==200 and second.json()['city']['id']==first.json()['city']['id']
+
+
+def test_provider_retries_temporary_transport_failure(monkeypatch):
+    import io, json
+    from urllib.error import URLError
+    calls=[]
+    def fetch(*args, **kwargs):
+        calls.append(1)
+        if len(calls)==1:
+            raise URLError('temporary network failure')
+        return io.BytesIO(json.dumps({'features':[feature('Школа 1','school')]}).encode())
+    monkeypatch.setattr(locations,'urlopen',fetch)
+    monkeypatch.setattr(locations.time,'sleep',lambda _:None)
+    assert len(locations._fetch([('q','школа')]))==1
+    assert len(calls)==2
+
+
+def test_provider_does_not_retry_rate_limit(monkeypatch):
+    from urllib.error import HTTPError
+    calls=[]
+    def fetch(*args, **kwargs):
+        calls.append(1)
+        raise HTTPError('https://example.com',429,'limit',{},None)
+    monkeypatch.setattr(locations,'urlopen',fetch)
+    with pytest.raises(AppError) as error:
+        locations._fetch([('q','школа')])
+    assert error.value.status==503
+    assert len(calls)==1

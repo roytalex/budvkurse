@@ -35,3 +35,14 @@ async def test_registration_rejects_unavailable_roles(api, role):
         'email':'invalid@example.com', 'password':'TestPassword_123', 'name':'Участник', 'role':role,
     })
     assert response.status_code == 422
+
+
+async def test_organizer_cannot_register_for_an_event(api):
+    from .helpers import event_setup, account
+    _, owner, eid, _ = await event_setup(api)
+    response = await api[0].post(f'/api/v1/events/{eid}/registrations', headers=owner)
+    assert response.status_code == 403
+    other, _, _ = await account(api, 'another-organizer', 'organizer')
+    assert (await api[0].post(f'/api/v1/events/{eid}/registrations', headers=other)).status_code == 403
+    student, _, _ = await account(api, 'allowed-student')
+    assert (await api[0].post(f'/api/v1/events/{eid}/registrations', headers=student)).status_code == 201
