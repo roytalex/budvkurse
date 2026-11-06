@@ -10,7 +10,7 @@ FastAPI, SQLAlchemy, Alembic и PostgreSQL; HTML/CSS/JavaScript, Leaflet и MapL
 
 ## 1. Получение исходников
 
-Репозиторий приватный: владелец должен предоставить вашему GitHub-аккаунту доступ.
+
 
 ```powershell
 git clone https://github.com/roytalex/budvkurse.git
