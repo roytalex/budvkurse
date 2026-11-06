@@ -75,3 +75,6 @@ createdb -U postgres budvkurse_app
 
 
 Инструкции: [как открыть проект](HOW-TO-OPEN.md) и [запуск Docker с CloudPub](CLOUDPUB.md).
+
+
+Сценарий проверки на демонстрационных событиях: [DEMO-REVIEW.md](DEMO-REVIEW.md).
