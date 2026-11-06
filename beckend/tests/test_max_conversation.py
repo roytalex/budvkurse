@@ -16,6 +16,10 @@ from services.max_conversation import conversation
     ('/calendar@school_bot', 'calendar'), ('Что ты умеешь?', 'feed'),
     ('не открывается приложение', 'feed'), ('Спасибо!', 'feed'),
     ('открыть избранное', 'saved'), ('история посещений', 'passport'),
+    ('как получить сертификат?', 'passport'), ('где мой QR-билет?', 'registrations'),
+    ('как оставить отзыв?', 'passport'), ('челленджи месяца', 'challenges'),
+    ('рейтинг школ', 'schoolboard'), ('мои планы', 'calendar'),
+    ('мои интересы', 'feed'), ('создать отзыв', 'passport'),
 ])
 def test_conversation_routes(phrase, section):
     answer, target, label = conversation(phrase)
