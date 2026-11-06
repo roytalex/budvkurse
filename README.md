@@ -111,20 +111,6 @@ docker compose --env-file .env.cloudpub -f compose.cloudpub.yaml exec app python
 
 Без подключения MAX заявка всё равно сохраняется и видна капитану в команде. Это сообщение внутри MAX, не SMS на телефон.
 
-## 6. Проверка функционала организаторами хакатона
-
-1. Создай отдельные аккаунты организатора и двух учеников. У организатора нет класса и школы ученика; место проведения указывается в событии.
-2. Организатор создаёт черновик, указывает город, даты, условия. Для школьного события нужна школа; для очного — адрес и координаты, для онлайн — ссылка. Публикация доступна без предварительного одобрения администратора.
-3. Ученики находят событие в ленте, карте и календаре; проверяют сердечко избранного и личные планы, записываются.
-4. Один ученик создаёт команду, второй подаёт заявку. Для команды нужна внутренняя регистрация на событие. Капитан с подключённым MAX получает уведомление и принимает заявку.
-5. После окончания события организатор открывает «Участники» → «Сканировать QR участника». QR участника действует 5 минут; доступны камера, фото и ручной код. Само сканирование не подтверждает посещение — нужно нажать подтверждение. Есть также ручная отметка «Посетил».
-6. После подтверждения у ученика появляются сертификат, возможность оставить отзыв и прогресс достижений. Сертификат — HTML-файл, PDF создаётся через печать. Это подтверждение участия, не диплом о победе.
-7. Проверь напоминание в своём MAX-аккаунте и мобильный интерфейс на физическом телефоне. Автотесты не заменяют проверку камеры, клавиатуры и доставки сообщения на устройство.
-
-В демонстрационной базе владельца есть два события с пометкой ДЕМО: хакатон 23 ноября 2026 и олимпиада 24 ноября 2026, 14:00–16:00 по Москве. Они назначены после периода проверки 8–22 ноября. Эти данные не входят в Git. Доступ демо-организатора передаёт владелец отдельно; локальный файл `.runtime/DEMO-ACCESS.txt` не публикуется. Реальных встреч по демо-адресам нет.
-
-Поиск школ и адресов использует Photon/OpenStreetMap. Это не полный государственный реестр. Сначала выбирают город, затем школу. Сохранённые школы можно выбрать при недоступности внешнего поиска; организатор может добавить настоящую школу вручную с адресом. Контакт организатора в MAX — полная ссылка профиля из «Поделиться», личный @username не требуется.
-
 ## 7. Обновление и резервная копия
 
 Перед обновлением сохрани БД и загрузки. Пример для CloudPub (файлы создаются внутри контейнеров, чтобы избежать повреждения бинарного дампа перенаправлением PowerShell):
@@ -170,35 +156,3 @@ node --test frontend/tests/*.test.cjs
 Не загружай в Git `.env*` с секретами, `.runtime`, `.admin-access.txt`, загрузки, дампы и виртуальные окружения. Шаблон `.env.example` допустим. Перед отправкой проверяй `git status` и `git diff --cached`. GitHub хранит исходники, а не работающие контейнеры и БД.
 
 Сторонние библиотеки и лицензии сохранены в `vendor`; их комментарии и уведомления об авторских правах не удаляются. Ниже сохранены сведения об источниках изображений.
-
-### Фотографии
-
-Иллюстрации тематик, не фотографии заявленных мероприятий.
-
-Лицензия: https://unsplash.com/license
-
-- team.jpg: https://images.unsplash.com/photo-1522071820081-009f0129c71c
-- art.jpg: https://images.unsplash.com/photo-1513364776144-60967b0f800f
-- sport.jpg: https://images.unsplash.com/photo-1546519638-68e109498ffc
-- science.jpg: https://images.unsplash.com/photo-1532094349884-543bc11b234d
-- nature.jpg: https://images.unsplash.com/photo-1441974231531-c6227db76b6e
-- math.jpg: https://images.unsplash.com/photo-1509228468518-180dd4864904
-
-Архивный festival-hero.webp (в новом интерфейсе не используется) — создано встроенным image_gen 27.10.2026 для Будь ВКурсе. Иллюстрация, не фотография реального опубликованного события. Исходник сохранён отдельно; для сайта выполнено только сжатие WebP.
-
-Full prompt (built-in image_gen):
-
-Use case: photorealistic-natural. Create a cinematic editorial photograph for the hero of a Russian youth school events platform, horizontal 3:2 landscape. Modern youth science and creativity festival at dusk in a striking glass and concrete cultural pavilion. In the RIGHT HALF foreground a small diverse group of 17-19 year old students seen candidly from three-quarter back enthusiastically interacting with a beautifully illuminated kinetic orbital sculpture and small robot on a table. Architectural depth, distant audience and subtle stage lights, violet and warm ivory lighting, deep graphite shadows, natural realistic faces and hands, atmospheric haze, premium architectural magazine photography, shot on 35mm. LEFT HALF mostly dark spacious architecture with soft atmospheric detail suitable for white headline overlay. Sophisticated desaturated tones, tasteful lavender accents. No text, no letters, no logos, no flags, no watermarks. This is a website photo asset, not a screenshot or interface mockup.
-
-
-### Настоящие фотографии для нового ТЗ
-
-Лицензия: https://www.pexels.com/license/ . Фотографии используются для оформления, не выдаются за мероприятия или пользователей платформы.
-
-- conference.webp — Atlantic Ambience, https://www.pexels.com/photo/people-sitting-inside-the-auditorium-9275222/
-
-- workshop.webp — Pavel Danilyuk, https://www.pexels.com/photo/students-on-a-classroom-8423404/
-
-- students.webp — Max Fischer, https://www.pexels.com/photo/group-of-students-with-their-teacher-5212352/
-
-- classroom.webp — Ivan S, https://www.pexels.com/photo/students-in-the-classroom-5676741/
