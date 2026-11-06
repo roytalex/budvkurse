@@ -3,13 +3,18 @@ window.LocationSearch=(()=>{
   let context=null, rows=[], serial=0, controller=null, manualMap=null,manualMarker=null;
   const dialog=document.createElement('dialog');dialog.id='location-dialog';document.body.append(dialog);
   function cityId(){return context?.form ? (context.form.elements.city_id?.value||'') : (state.city||'');}
+  function showSavedSchools(){
+    if(context?.kind!=='school')return;
+    const saved=state.schools.filter(s=>String(s.city_id)===String(cityId())&&s.is_active!==false);
+    $('#location-results').innerHTML=saved.length?'<p>Сохранённые школы — доступны без внешнего поиска</p>'+saved.map(s=>`<button type="button" class="location-result" data-geo-saved="${s.id}"><span><b>${esc(s.name)}</b><small>${esc(s.address||'')}</small></span><span>Выбрать</span></button>`).join(''):'<p class="form-hint">В выбранном городе пока нет сохранённых школ. Попробуй поиск по номеру или названию. Если источник недоступен, организатор может добавить школу вручную.</p>';
+  }
   function open(kind,form=null){
     if(!state.me)return;
     context={kind,form};rows=[];serial++;controller?.abort();
-    if(kind==='school'&&!cityId()){toast('Сначала выбери населённый пункт');return;}
+    if(kind==='school'&&!cityId()){showError(new Error('Сначала выбери населённый пункт'),form);return;}
     const title={city:'Найди свой населённый пункт',school:'Выбери школу',place:'Найди адрес или площадку'}[kind];
     dialog.innerHTML=`<button type="button" class="modal-close icon-button" data-geo-close aria-label="Закрыть поиск">×</button><h2>${title}</h2><p>${kind==='city'?'Города, посёлки, сёла и деревни России. У одноимённых мест проверяй регион.':kind==='school'?`Поиск в ${esc(cityName(cityId()))}. Введи название или номер школы, лицея, гимназии.`:'Введи улицу, дом или название места. Выбор подставит адрес и точку на карте.'}</p><form id="location-search-form"><label class="form-field">${kind==='city'?'Название и регион':kind==='school'?'Название или номер':'Адрес'}<div class="location-input-row"><input name="query" placeholder="${kind==='city'?'Например: Выборг, Ленинградская область':kind==='school'?'Например: школа 12 или лицей':'Например: улица Ленина, 10'}" maxlength="150" required autocomplete="off"><button class="primary-button" type="submit">Найти</button></div></label></form><div id="location-status" role="status"></div><div id="location-results" class="location-results"></div>${kind!=='place'&&canOrganize()?'<button type="button" class="secondary-button" data-geo-manual>Не найдено? Добавить вручную</button>':''}<p class="location-credit">Поиск: <a href="https://photon.komoot.io/" target="_blank" rel="noopener noreferrer">Photon</a> · © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>. Возможны пропуски; это не полный государственный реестр.</p>`;
-    if(!dialog.open)dialog.showModal();dialog.querySelector('input').focus();
+    if(!dialog.open)dialog.showModal();showSavedSchools();dialog.querySelector('input').focus();
   }
   function close(){serial++;controller?.abort();manualMap?.remove();manualMap=null;manualMarker=null;dialog.close();context=null;rows=[];}
   async function search(form){
@@ -58,12 +63,13 @@ window.LocationSearch=(()=>{
       const fd=new FormData(form);const coord=k=>fd.get(k)===''?null:Number(fd.get(k));
       const school=await Api.request('/locations/schools/manual',{method:'POST',body:{city_id:Number(form.dataset.cityId),name:fd.get('name').trim(),address:fd.get('address').trim(),latitude:coord('latitude'),longitude:coord('longitude')}});
       if(context===active)await apply({city:{id:school.city_id},school});
-    }}catch(error){if(error.name!=='AbortError'&&error.status!==401&&dialog.open)$('#location-status').textContent=error.message;}finally{button.disabled=false;}
+    }}catch(error){if(error.name!=='AbortError'&&error.status!==401&&dialog.open&&context===active){$('#location-status').textContent=error.message;if(form.id==='location-search-form')showSavedSchools();}}finally{button.disabled=false;}
   });
   dialog.addEventListener('click',async event=>{
     event.stopPropagation();const button=event.target.closest('button');if(!button||button.disabled)return;
     if(button.hasAttribute('data-geo-close')){close();return;}
     if(button.hasAttribute('data-geo-manual')){serial++;controller?.abort();manual();return;}
+    if(button.dataset.geoSaved){const school=state.schools.find(s=>s.id===Number(button.dataset.geoSaved)&&String(s.city_id)===String(cityId()));if(school){button.disabled=true;try{await apply({city:{id:school.city_id},school});}catch(error){if(dialog.open)$('#location-status').textContent=error.message;}finally{button.disabled=false;}}return;}
     if(!button.hasAttribute('data-geo-result'))return;
     const row=rows[Number(button.dataset.geoResult)];if(!row)return;
     const active=context;button.disabled=true;
