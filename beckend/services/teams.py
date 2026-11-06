@@ -112,7 +112,7 @@ async def join(db, user, team_id, data):
     count = await db.scalar(select(func.count()).select_from(TeamMember).where(TeamMember.team_id==team.id, TeamMember.status=="accepted"))
     if count >= team.capacity:
         raise AppError(409, "Команда уже заполнена")
-    await common.create(db, TeamMember, dict(team_id=team.id, event_id=team.event_id, user_id=user.id, skills=data.skills, status="pending"))
+    await common.create(db, TeamMember, dict(team_id=team.id, event_id=team.event_id, user_id=user.id, skills=data.skills, status="pending", captain_notice_pending=True))
     return (await serialize(db, [team], user))[0]
 
 

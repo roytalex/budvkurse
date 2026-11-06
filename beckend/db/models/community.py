@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint, func
+from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column
 from db.db import Base
 
@@ -34,6 +34,11 @@ class TeamMember(Base):
     status: Mapped[str] = mapped_column(String(10), server_default="pending")
     skills: Mapped[str] = mapped_column(String(300), server_default="")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    captain_notice_pending: Mapped[bool] = mapped_column(Boolean, server_default='false')
+    captain_notice_sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    captain_notice_retry_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    captain_notice_attempts: Mapped[int] = mapped_column(Integer, server_default='0')
+
 
 
 class Review(Base):

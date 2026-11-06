@@ -1,0 +1,42 @@
+name: budvkurse-local
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: budvkurse_app
+      POSTGRES_USER: budvkurse
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - database:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U budvkurse -d budvkurse_app"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+asyncpg://budvkurse:${POSTGRES_PASSWORD}@db:5432/budvkurse_app
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-}
+      MAX_BOT_TOKEN: ${MAX_BOT_TOKEN:-}
+      MAX_BOT_USERNAME: ${MAX_BOT_USERNAME:-}
+      MAX_WEBHOOK_SECRET: ${MAX_WEBHOOK_SECRET:-}
+    ports:
+      - "127.0.0.1:4174:8000"
+    volumes:
+      - uploads:/app/beckend/uploads
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=5)"]
+      interval: 10s
+      timeout: 7s
+      retries: 12
+      start_period: 30s
+volumes:
+  database:
+  uploads:

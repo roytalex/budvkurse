@@ -25,7 +25,7 @@ def check_token(settings):
     if settings.max_bot_username and settings.max_bot_username.lower() != username.lower():
         print('В .env указано другое имя. Исправь MAX_BOT_USERNAME перед подключением webhook.')
     print('Проверка не подключает мини-приложение и не сохраняет введённый токен.')
-    print('Для подключения сохрани токен в beckend/.env и выполни дальнейшие шаги из MAX.md.')
+    print('Для подключения сохрани токен в beckend/.env и выполни дальнейшие шаги из README.md.')
 
 
 def main():

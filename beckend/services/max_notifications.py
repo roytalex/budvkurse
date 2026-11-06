@@ -162,6 +162,8 @@ async def run_worker(stop):
     while not stop.is_set():
         try:
             await deliver_due(stop)
+            from services.team_notifications import deliver_due as deliver_team_requests
+            await deliver_team_requests(stop)
         except Exception:
             logging.getLogger(__name__).warning('MAX reminders unavailable; next attempt in 30 seconds')
         try:

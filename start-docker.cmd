@@ -10,7 +10,7 @@ if errorlevel 1 (
   exit /b 1
 )
 if not exist ".env.cloudpub" (
-  echo Missing .env.cloudpub. Read CLOUDPUB.md.
+  echo Missing .env.cloudpub. Read README.md.
   pause
   exit /b 1
 )
@@ -27,6 +27,6 @@ if errorlevel 1 (
 )
 docker compose --env-file .env.cloudpub -f compose.cloudpub.yaml ps
 echo Local site: http://127.0.0.1:4174/
-echo Check the public URL and MAX webhook using the instructions in CLOUDPUB.md.
+echo Check the public URL and MAX webhook using the instructions in README.md.
 echo Containers run in the background. Closing this window does not stop them.
 pause

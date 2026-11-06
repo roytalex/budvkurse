@@ -222,3 +222,10 @@
 .save-button[hidden]{display:none!important}
 #modal-content .modal-error{padding:14px 16px;background:#fff0f0;border:1px solid #e9a7a7;border-radius:12px;color:#962727;margin:16px 0;line-height:1.5}
 [data-action="organizer-intro"][hidden]{display:none!important}
+
+#modal-content [data-team-create]{margin:16px 0!important;min-height:44px}
+#team-form,#team-join-form{display:flex;flex-direction:column;gap:18px}
+#team-form .form-field,#team-join-form .form-field{margin:0}
+#team-form button[type="submit"],#team-join-form button[type="submit"]{margin-top:8px!important;min-height:48px;align-self:flex-start}
+.team-card>.activity-actions{margin-top:20px!important;gap:12px}
+.team-requests .activity-actions{margin-top:12px;gap:12px}

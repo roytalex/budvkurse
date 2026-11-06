@@ -2,7 +2,7 @@
 chcp 65001 >nul
 cd /d "%~dp0beckend"
 if not exist ".venv\Scripts\python.exe" (
-  echo Python environment is missing. Read START.md in the project folder.
+  echo Python environment is missing. Read README.md in the project folder.
   pause
   exit /b 1
 )
