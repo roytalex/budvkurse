@@ -22,30 +22,30 @@ def query():
 
 async def deliver_one(factory, member_id):
     async with factory.begin() as db:
-        row = (await db.execute(query().where(TeamMember.id == member_id).with_for_update(skip_locked=True))).first()
-        if not row:
+        request_record = (await db.execute(query().where(TeamMember.id == member_id).with_for_update(skip_locked=True))).first()
+        if not request_record:
             return False
-        member, team, event, connection = row
+        member, team, event, captain_connection = request_record
         applicant = await db.get(User, member.user_id)
         if not applicant or not applicant.is_active:
             return False
-        message = (f'Новая заявка в команду «{team.name}»!\n'
+        notification_text = (f'Новая заявка в команду «{team.name}»!\n'
                         f'{applicant.name} хочет присоединиться.\n'
                         f'Мероприятие: {event.title}\n'
                         f'Чем поможет: {member.skills}\n\n'
                         'Открой событие → «Команды и отзывы» → свою команду. Прими или отклони заявку.\n'
                         'Отключить уведомления: /stop.')
-        body = max_messages.app_message(message, f'event_{event.id}', 'Посмотреть заявку')
+        notification = max_messages.app_message(notification_text, f'event_{event.id}', 'Посмотреть заявку')
         member.captain_notice_attempts += 1
         try:
-            result = await max_bot.send_message(connection.max_user_id, body)
-            if not isinstance(result, dict) or not isinstance(result.get('message'), dict):
+            send_result = await max_bot.send_message(captain_connection.max_user_id, notification)
+            if not isinstance(send_result, dict) or not isinstance(send_result.get('message'), dict):
                 raise AppError(502, 'MAX не подтвердил отправку')
         except AppError as error:
             if getattr(error, 'upstream_status', None) == 403:
-                connection.enabled = False
-            delay = max(getattr(error, 'retry_after', 0), min(3600, 60 * 2 ** min(member.captain_notice_attempts - 1, 6)))
-            member.captain_notice_retry_at = utcnow() + timedelta(seconds=delay)
+                captain_connection.enabled = False
+            retry_delay_seconds = max(getattr(error, 'retry_after', 0), min(3600, 60 * 2 ** min(member.captain_notice_attempts - 1, 6)))
+            member.captain_notice_retry_at = utcnow() + timedelta(seconds=retry_delay_seconds)
             logging.getLogger(__name__).warning('Team notification deferred: member=%s', member.id)
         else:
             member.captain_notice_sent_at = utcnow()
@@ -59,15 +59,15 @@ async def deliver_due(stop=None):
     if not settings.max_bot_token or not settings.max_bot_username:
         return
     factory = get_session_factory()
-    cursor = 0
+    last_member_id = 0
     while not stop or not stop.is_set():
         async with factory() as db:
-            ids = list((await db.scalars(query().with_only_columns(TeamMember.id).where(TeamMember.id > cursor).order_by(TeamMember.id).limit(100))).all())
-        if not ids:
+            member_ids = list((await db.scalars(query().with_only_columns(TeamMember.id).where(TeamMember.id > last_member_id).order_by(TeamMember.id).limit(100))).all())
+        if not member_ids:
             return
-        for member_id in ids:
+        for member_id in member_ids:
             if stop and stop.is_set():
                 return
             if await deliver_one(factory, member_id):
                 await asyncio.sleep(0.6)
-        cursor = ids[-1]
+        last_member_id = member_ids[-1]

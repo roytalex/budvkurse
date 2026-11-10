@@ -28,10 +28,10 @@ def set_launch(body, section, label):
 
 
 def welcome(username):
-    note = '\n\nИнструкция: /guide. Нажми «Открыть приложение», чтобы начать.'
-    return app_message('Привет! Я помощник «Будь в курсе». Помогу найти событие, собрать команду и разобраться с участием.\n\nНапиши, например: «хочу на олимпиаду», «покажи карту», «мои достижения» или «как записаться». Можно общаться обычными фразами.\n\nНапоминания подключаются в профиле приложения. Проверить связь: /status. Отключить уведомления: /stop.' + note, username=username)
+    help_text = '\n\nИнструкция: /guide. Нажми «Открыть приложение», чтобы начать.'
+    return app_message('Привет! Я помощник «Будь в курсе». Помогу найти событие, собрать команду и разобраться с участием.\n\nНапиши, например: «хочу на олимпиаду», «покажи карту», «мои достижения» или «как записаться». Можно общаться обычными фразами.\n\nНапоминания подключаются в профиле приложения. Проверить связь: /status. Отключить уведомления: /stop.' + help_text, username=username)
 
 
 def conversation_body(text):
-    answer, section, label = conversation(text)
-    return app_message(answer, section, label)
+    reply_text, section, label = conversation(text)
+    return app_message(reply_text, section, label)
