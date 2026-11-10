@@ -2,11 +2,15 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const vm=require('node:vm');
+const ProfileView=require('../profile-view.js');
 const source=fs.readFileSync(require.resolve('../app-live.js'),'utf8');
 function profile(role){
   let html='';
-  const context={state:{me:{role,name:'Тест',email:'test@example.org',grade:8,school_id:1,city_id:1},cities:[]},roles:{student:'Ученик',organizer:'Организатор'},esc:String,options:()=>'',schoolOptions:()=>'',canOrganize:()=>role==='organizer',openModal:value=>html=value};
-  for(const name of ['geoFields','profileForm'])vm.runInNewContext(source.split('\n').find(line=>line.startsWith('function '+name+'(')),context);
+  const context={ProfileView,state:{me:{role,name:'Тест',email:'test@example.org',grade:8,school_id:1,city_id:1},cities:[]},roles:{student:'Ученик',organizer:'Организатор'},esc:String,options:()=>'',schoolOptions:()=>'',canOrganize:()=>role==='organizer',openModal:value=>html=value};
+  for(const name of ['geoFields','profileForm']){
+    const declaration=source.slice(source.indexOf('function '+name+'(')).split(/\n(?:async )?function /)[0];
+    vm.runInNewContext(declaration,context);
+  }
   context.profileForm();return html;
 }
 test('Organizer profile contains city and MAX contact but no student fields',()=>{

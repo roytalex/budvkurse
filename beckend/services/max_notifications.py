@@ -13,7 +13,7 @@ from core.errors import AppError
 from core.time import aware, utcnow
 from db import db as database
 from db.models import Event, Plan, User, MaxConnection
-from services import max_bot
+from services import max_bot, max_messages
 
 
 def verified_user(init_data):
@@ -93,12 +93,10 @@ async def stop_for_max(max_id):
 
 def reminder_message(event):
     when = aware(event.starts_at).astimezone(ZoneInfo(event.timezone)).strftime('%d.%m.%Y в %H:%M')
-    body = max_bot.welcome(get_settings().max_bot_username)
-    body['text'] = f'Напоминание: {event.title}\nНачало: {when} ({event.timezone}).\n' + (
+    message = f'Напоминание: {event.title}\nНачало: {when} ({event.timezone}).\n' + (
         'Формат: онлайн.' if event.format == 'online' else f'Место: {event.place_name or ""}. {event.address or ""}')
-    body['text'] += '\nОткрой карточку, чтобы проверить детали. Отключить уведомления: /stop.'
-    max_bot.set_launch(body, f'event_{event.id}', 'Открыть событие')
-    return body
+    message += '\nОткрой карточку, чтобы проверить детали. Отключить уведомления: /stop.'
+    return max_messages.app_message(message, f'event_{event.id}', 'Открыть событие')
 
 
 async def deliver_one(factory, plan_id):

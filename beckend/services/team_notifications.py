@@ -7,7 +7,7 @@ from core.errors import AppError
 from core.time import utcnow, aware
 from db.db import get_session_factory
 from db.models import TeamMember, Team, Event, User, MaxConnection
-from services import max_bot
+from services import max_bot, max_messages
 
 
 def query():
@@ -29,14 +29,13 @@ async def deliver_one(factory, member_id):
         applicant = await db.get(User, member.user_id)
         if not applicant or not applicant.is_active:
             return False
-        body = max_bot.welcome(get_settings().max_bot_username)
-        body['text'] = (f'Новая заявка в команду «{team.name}»!\n'
+        message = (f'Новая заявка в команду «{team.name}»!\n'
                         f'{applicant.name} хочет присоединиться.\n'
                         f'Мероприятие: {event.title}\n'
                         f'Чем поможет: {member.skills}\n\n'
                         'Открой событие → «Команды и отзывы» → свою команду. Прими или отклони заявку.\n'
                         'Отключить уведомления: /stop.')
-        max_bot.set_launch(body, f'event_{event.id}', 'Посмотреть заявку')
+        body = max_messages.app_message(message, f'event_{event.id}', 'Посмотреть заявку')
         member.captain_notice_attempts += 1
         try:
             result = await max_bot.send_message(connection.max_user_id, body)

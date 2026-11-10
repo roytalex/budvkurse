@@ -10,7 +10,7 @@ from urllib.request import Request, urlopen
 from weakref import WeakValueDictionary
 from core.config import get_settings
 from core.errors import AppError
-from services.max_conversation import conversation
+from services.max_messages import launch_buttons, set_launch, welcome, conversation_body
 
 API_URL = 'https://platform-api2.max.ru'
 completed = OrderedDict()
@@ -136,31 +136,6 @@ def recipient(update):
     if first.startswith('/') and '@' in first and first.partition('@')[2].lower() != get_settings().max_bot_username.lower():
         return None
     return sender.get('user_id')
-
-
-def launch_buttons(username, section='feed', label='Открыть приложение'):
-    buttons = [[{'type': 'open_app', 'text': label, 'web_app': username, 'payload': section}]]
-    return buttons
-
-
-def set_launch(body, section, label):
-    body['attachments'] = [{'type': 'inline_keyboard', 'payload': {'buttons': launch_buttons(get_settings().max_bot_username, section, label)}}]
-    return body
-
-
-def welcome(username):
-    buttons = launch_buttons(username)
-    note = '\n\nИнструкция: /guide. Нажми «Открыть приложение», чтобы начать.'
-    return {'text':'Привет! Я помощник «Будь в курсе». Помогу найти событие, собрать команду и разобраться с участием.\n\nНапиши, например: «хочу на олимпиаду», «покажи карту», «мои достижения» или «как записаться». Можно общаться обычными фразами.\n\nНапоминания подключаются в профиле приложения. Проверить связь: /status. Отключить уведомления: /stop.' + note,
-            'attachments':[{'type':'inline_keyboard', 'payload':{'buttons':buttons}}]}
-
-
-def conversation_body(text):
-    answer, section, label = conversation(text)
-    body = welcome(get_settings().max_bot_username)
-    body['text'] = answer
-    return set_launch(body, section, label)
-
 
 
 def update_key(update):
