@@ -12,7 +12,7 @@
         else mark?.remove();
       });
       let note=form.querySelector('.optional-note');
-      if(count&&!note){note=document.createElement('p');note.className='optional-note';note.textContent='* — необязательное поле, можно оставить пустым.';form.prepend(note);}
+      if(count&&!note){note=document.createElement('p');note.className='optional-note';note.textContent='* - необязательное поле, можно оставить пустым.';form.prepend(note);}
       if(!count)note?.remove();
     });
   }

@@ -65,7 +65,7 @@ async def edit_event(event_id: int, data: EventUpdate, db: DB, user: Organizer):
     return await service.edit(db, event_id, user, data)
 
 
-@router.delete("/events/{event_id}", status_code=204, summary="Администратор удаляет любое событие; организатор — свой черновик")
+@router.delete("/events/{event_id}", status_code=204, summary="Администратор удаляет любое событие; организатор - свой черновик")
 async def delete_event(event_id: int, db: DB, user: Organizer):
     await service.remove(db, event_id, user)
     return Response(status_code=204)

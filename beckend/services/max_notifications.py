@@ -182,8 +182,8 @@ async def bot_summary(max_id):
         for plan, event in rows:
             when = aware(event.starts_at).astimezone(ZoneInfo(event.timezone)).strftime('%d.%m в %H:%M')
             timing = 'в момент начала' if plan.reminder_minutes_before == 0 else f'за {plan.reminder_minutes_before} мин.'
-            lines.append(f'• {event.title} — {when} ({event.timezone}), напомню {timing}.')
+            lines.append(f'• {event.title} - {when} ({event.timezone}), напомню {timing}.')
         if not rows:
             lines.append('Ближайших событий с напоминанием пока нет. Открой событие на сайте и настрой напоминание.')
-        lines.append('Все планы и время уведомлений — на сайте. Отключить напоминания: /stop.')
+        lines.append('Все планы и время уведомлений - на сайте. Отключить напоминания: /stop.')
         return '\n'.join(lines)

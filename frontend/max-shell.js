@@ -74,7 +74,7 @@
     const issued=await Api.request(`/events/${id}/certificate-link`,{method:'POST'});
     const url=new URL(issued.path,location.origin);
     if(url.origin!==location.origin||url.protocol!=='https:')throw new Error('Скачивание в MAX доступно после размещения сайта по HTTPS.');
-    openModal(`<div class="modal-kicker">СЕРТИФИКАТ УЧАСТИЯ</div><h2 class="modal-heading">Твой результат — с тобой.</h2><p class="form-hint">Файл HTML откроется в браузере. Для PDF выбери «Печать  Сохранить как PDF». Ссылка действует 5 минут.</p><button class="primary-button" type="button" data-max-download="${esc(url.href)}" data-filename="${esc(issued.filename)}">Скачать сертификат</button><p class="form-hint">Если ссылка истекла, закрой окно и создай её заново в паспорте.</p>`,'certificate');
+    openModal(`<div class="modal-kicker">СЕРТИФИКАТ УЧАСТИЯ</div><h2 class="modal-heading">Твой результат - с тобой.</h2><p class="form-hint">Файл HTML откроется в браузере. Для PDF выбери «Печать  Сохранить как PDF». Ссылка действует 5 минут.</p><button class="primary-button" type="button" data-max-download="${esc(url.href)}" data-filename="${esc(issued.filename)}">Скачать сертификат</button><p class="form-hint">Если ссылка истекла, закрой окно и создай её заново в паспорте.</p>`,'certificate');
   }
   async function download(url,name){
     const target=new URL(url,location.origin);

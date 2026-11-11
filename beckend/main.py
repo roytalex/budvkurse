@@ -45,7 +45,7 @@ app.add_middleware(CORSMiddleware, allow_origins=get_settings().cors_origins,
 async def swagger_docs():
     return get_swagger_ui_html(
         openapi_url=app.openapi_url,
-        title=app.title + " — Swagger UI",
+        title=app.title + " - Swagger UI",
         swagger_js_url="/vendor/swagger-ui/swagger-ui-bundle.js?v=5.34.1",
         swagger_css_url="/vendor/swagger-ui/swagger-ui.css?v=5.34.1",
         swagger_favicon_url="/assets/brand/favicon-blue.svg",

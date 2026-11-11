@@ -6,7 +6,7 @@ window.LocationSearch=(()=>{
   function showSavedSchools(){
     if(context?.kind!=='school')return;
     const saved=state.schools.filter(s=>String(s.city_id)===String(cityId())&&s.is_active!==false);
-    $('#location-results').innerHTML=saved.length?'<p>Сохранённые школы — доступны без внешнего поиска</p>'+saved.map(s=>`<button type="button" class="location-result" data-geo-saved="${s.id}"><span><b>${esc(s.name)}</b><small>${esc(s.address||'')}</small></span><span>Выбрать</span></button>`).join(''):'<p class="form-hint">В выбранном городе пока нет сохранённых школ. Попробуй поиск по номеру или названию. Если источник недоступен, организатор может добавить школу вручную.</p>';
+    $('#location-results').innerHTML=saved.length?'<p>Сохранённые школы - доступны без внешнего поиска</p>'+saved.map(s=>`<button type="button" class="location-result" data-geo-saved="${s.id}"><span><b>${esc(s.name)}</b><small>${esc(s.address||'')}</small></span><span>Выбрать</span></button>`).join(''):'<p class="form-hint">В выбранном городе пока нет сохранённых школ. Попробуй поиск по номеру или названию. Если источник недоступен, организатор может добавить школу вручную.</p>';
   }
   function open(kind,form=null){
     if(!state.me)return;
@@ -25,7 +25,7 @@ window.LocationSearch=(()=>{
     const result=await Api.request('/locations/search?'+Api.query({q,kind:context.kind,city_id:context.kind==='city'?'':cityId()}),{signal:controller.signal});
     if(seq!==serial||!dialog.open||!state.me)return;
     rows=result.items;
-    $('#location-status').textContent=result.warning||(!rows.length?'Ничего не найдено. Попробуй другое название или добавь регион.':`Найдено вариантов: ${rows.length}. Если нужного нет — уточни запрос.`);
+    $('#location-status').textContent=result.warning||(!rows.length?'Ничего не найдено. Попробуй другое название или добавь регион.':`Найдено вариантов: ${rows.length}. Если нужного нет - уточни запрос.`);
     $('#location-results').innerHTML=rows.map((r,i)=>`<button type="button" class="location-result" data-geo-result="${i}"><span class="location-symbol">${context.kind==='school'?'▤':''}</span><span><b>${esc(r.name)}</b><small>${esc(r.label)}</small><em>${esc(r.source)}</em></span><span>Выбрать </span></button>`).join('');
   }
   async function apply(selection){
